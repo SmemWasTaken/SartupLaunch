@@ -19,7 +19,7 @@ export class OpenAIService {
   private baseUrl = 'https://api.openai.com/v1';
 
   constructor(apiKey: string) {
-    this.apiKey = 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;
+    this.apiKey = apiKey;
   }
 
   async generateStartupIdeas(params: IdeaGenerationRequest): Promise<any[]> {
