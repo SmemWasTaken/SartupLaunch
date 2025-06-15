@@ -27,8 +27,10 @@ import StartupGuidePage from './pages/StartupGuidePage';
 import SuccessStoriesPage from './pages/SuccessStoriesPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import APIDocsPage from './pages/APIDocsPage';
+import ProfilePage from './pages/ProfilePage';
 import { useAuth } from './contexts/AuthContext';
 import { LoadingPage } from './components/LoadingSpinner';
+import AdminDashboard from './components/AdminDashboard';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -201,6 +203,22 @@ const AppContent: React.FC = () => {
                   <p className="text-gray-600">Analytics features coming soon...</p>
                 </div>
               </div>
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AdminDashboard />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ProfilePage />
             </AppLayout>
           </ProtectedRoute>
         } />
