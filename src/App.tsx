@@ -8,6 +8,7 @@ import { OnboardingProvider } from './contexts/OnboardingContext';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { CartPage } from './pages/CartPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { IdeaGenerationPage } from './pages/IdeaGenerationPage';
 import { TemplatesPage } from './pages/TemplatesPage';
@@ -165,6 +166,12 @@ const AppContent: React.FC = () => {
         <Route path="/templates" element={
           <AppLayout>
             <TemplatesPage />
+          </AppLayout>
+        } />
+
+        <Route path="/cart" element={
+          <AppLayout>
+            <CartPage />
           </AppLayout>
         } />
 

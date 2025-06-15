@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, ShoppingCart, Eye, Download, Heart, Check } from 'lucide-react';
+import { Search, Filter, Star, ShoppingCart, Eye, Download, Heart, Check, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Template } from '../types';
 import { useTemplates } from '../hooks/useTemplates';
 import { LoadingSpinner, LoadingCard } from './LoadingSpinner';
 import { trackTemplateViewed, trackTemplateAddedToCart } from '../utils/analytics';
+import Modal from './Modal';
 
 const categories = ['All', 'Business Plan', 'Design', 'Legal', 'Marketing', 'Productivity', 'Finance'];
 const sortOptions = [
@@ -15,12 +17,15 @@ const sortOptions = [
 ];
 
 export const TemplateMarketplace: React.FC = () => {
-  const { templates, addToCart, isLoading } = useTemplates();
+  const navigate = useNavigate();
+  const { templates, addToCart, cart, isLoading } = useTemplates();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('popular');
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [addedTemplate, setAddedTemplate] = useState<Template | null>(null);
 
   useEffect(() => {
     let filtered = templates;
@@ -69,6 +74,8 @@ export const TemplateMarketplace: React.FC = () => {
 
   const handleAddToCart = (template: Template) => {
     addToCart(template);
+    setAddedTemplate(template);
+    setShowCartModal(true);
     trackTemplateAddedToCart(template.id, template.price);
   };
 
@@ -77,6 +84,15 @@ export const TemplateMarketplace: React.FC = () => {
       style: 'currency',
       currency: 'USD',
     }).format(price);
+  };
+
+  const handleGoToCart = () => {
+    setShowCartModal(false);
+    navigate('/cart');
+  };
+
+  const handleContinueShopping = () => {
+    setShowCartModal(false);
   };
 
   if (isLoading) {
@@ -156,6 +172,16 @@ export const TemplateMarketplace: React.FC = () => {
         <p className="text-gray-600">
           {filteredTemplates.length} templates found
         </p>
+        
+        {cart.length > 0 && (
+          <Link 
+            to="/cart" 
+            className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>Cart ({cart.length})</span>
+          </Link>
+        )}
       </div>
 
       {/* Templates Grid */}
@@ -322,7 +348,7 @@ export const TemplateMarketplace: React.FC = () => {
                   onClick={() => setSelectedTemplate(null)}
                   className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors duration-200"
                 >
-                  ×
+                  <X className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
 
@@ -403,6 +429,46 @@ export const TemplateMarketplace: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Added to Cart Modal */}
+      <Modal 
+        isOpen={showCartModal} 
+        onClose={() => setShowCartModal(false)}
+        title="Added to Cart"
+      >
+        <div className="space-y-6">
+          {addedTemplate && (
+            <div className="flex items-center space-x-4">
+              <img 
+                src={addedTemplate.thumbnailUrl} 
+                alt={addedTemplate.title} 
+                className="w-16 h-16 object-cover rounded-lg"
+              />
+              <div>
+                <h3 className="font-semibold text-gray-900">{addedTemplate.title}</h3>
+                <p className="text-gray-600 text-sm">{formatPrice(addedTemplate.price)}</p>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <button
+              onClick={handleContinueShopping}
+              className="text-gray-600 hover:text-gray-900 font-medium"
+            >
+              Continue Shopping
+            </button>
+            
+            <button
+              onClick={handleGoToCart}
+              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>Go to Cart</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

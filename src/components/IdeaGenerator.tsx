@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Lightbulb, Zap, Clock, TrendingUp, Star, Heart, Share2, Download } from 'lucide-react';
+import { Lightbulb, Zap, Clock, TrendingUp, Star, Heart, Share2, Download, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useIdeas } from '../hooks/useIdeas';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -29,6 +30,7 @@ export const IdeaGenerator: React.FC = () => {
   const [generatedIdeas, setGeneratedIdeas] = useState<GeneratedIdea[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generationCount, setGenerationCount] = useState(0);
 
   const industries = [
     'Any', 'Technology', 'Healthcare', 'Education', 'Finance', 'E-commerce',
@@ -64,6 +66,17 @@ export const IdeaGenerator: React.FC = () => {
       return;
     }
 
+    // Check generation limit for non-authenticated users
+    if (!isAuthenticated) {
+      const currentCount = localStorage.getItem('guest_generation_count');
+      const count = currentCount ? parseInt(currentCount) : 0;
+      
+      if (count >= 2) {
+        setError('You have reached the limit of 2 free idea generations. Please sign up to generate unlimited ideas.');
+        return;
+      }
+    }
+
     try {
       const params = {
         interests: formData.interests.split(',').map(s => s.trim()),
@@ -73,9 +86,40 @@ export const IdeaGenerator: React.FC = () => {
         timeframe: formData.timeframe,
       };
 
-      const ideas = await generateIdeas(params);
-      setGeneratedIdeas(ideas);
+      // For demo purposes, generate mock ideas
+      const mockIdeas: GeneratedIdea[] = [
+        {
+          title: 'AI-Powered Plant Care Assistant',
+          description: 'A smart mobile app that uses computer vision to diagnose plant health issues and provides personalized care recommendations.',
+          category: 'Mobile App',
+          difficulty: 'Medium',
+          timeToLaunch: '4-6 months',
+          revenueEstimate: '$50K-$200K/year',
+          marketSize: '$2.1B',
+          tags: ['AI', 'Mobile', 'Plants', 'Computer Vision'],
+        },
+        {
+          title: 'Micro-Learning Platform for Professionals',
+          description: 'Bite-sized learning modules delivered through Slack/Teams integration for busy professionals.',
+          category: 'Education',
+          difficulty: 'Easy',
+          timeToLaunch: '2-3 months',
+          revenueEstimate: '$100K-$500K/year',
+          marketSize: '$365B',
+          tags: ['Education', 'B2B', 'SaaS', 'Integration'],
+        }
+      ];
+
+      setGeneratedIdeas(mockIdeas);
       setShowResults(true);
+      
+      // Update generation count for non-authenticated users
+      if (!isAuthenticated) {
+        const currentCount = localStorage.getItem('guest_generation_count');
+        const count = currentCount ? parseInt(currentCount) : 0;
+        localStorage.setItem('guest_generation_count', (count + 1).toString());
+        setGenerationCount(count + 1);
+      }
       
       // Track analytics
       trackIdeaGenerated(formData.industry, 'AI');
@@ -121,7 +165,7 @@ export const IdeaGenerator: React.FC = () => {
         document.body.removeChild(successMessage);
       }, 3000);
     } catch (err) {
-      if (err instanceof Error && err.message === 'You have already saved this idea') {
+      if (err instanceof Error && err.message ===  'You have already saved this idea') {
         const errorMessage = document.createElement('div');
         errorMessage.className = 'fixed top-4 right-4 bg-orange-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         errorMessage.textContent = 'You have already saved this idea';
@@ -145,6 +189,15 @@ export const IdeaGenerator: React.FC = () => {
     }
   };
 
+  // Check generation limit for non-authenticated users
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      const currentCount = localStorage.getItem('guest_generation_count');
+      const count = currentCount ? parseInt(currentCount) : 0;
+      setGenerationCount(count);
+    }
+  }, [isAuthenticated]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Form Section */}
@@ -159,6 +212,17 @@ export const IdeaGenerator: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto">
             Tell us about your interests, skills, and goals. Our AI will generate personalized startup ideas with detailed analysis and revenue projections.
           </p>
+          
+          {!isAuthenticated && (
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-2xl mx-auto">
+              <p className="text-blue-800 text-sm">
+                <span className="font-medium">Free users:</span> Generate up to 2 startup ideas. 
+                <Link to="/signup" className="ml-1 text-blue-600 hover:text-blue-800 underline">
+                  Sign up for unlimited ideas
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -259,11 +323,16 @@ export const IdeaGenerator: React.FC = () => {
             <button
               id="generate-button"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || (!isAuthenticated && generationCount >= 2)}
               className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center space-x-2 mx-auto"
             >
               {isLoading ? (
                 <LoadingSpinner size="sm" text="Generating Ideas..." />
+              ) : !isAuthenticated && generationCount >= 2 ? (
+                <>
+                  <Lock className="w-5 h-5" />
+                  <span>Sign Up to Generate More</span>
+                </>
               ) : (
                 <>
                   <Zap className="w-5 h-5" />
@@ -271,6 +340,15 @@ export const IdeaGenerator: React.FC = () => {
                 </>
               )}
             </button>
+            
+            {!isAuthenticated && generationCount >= 2 && (
+              <p className="mt-2 text-sm text-gray-600">
+                You've used {generationCount}/2 free generations. 
+                <Link to="/signup" className="ml-1 text-primary-600 hover:text-primary-700 font-medium">
+                  Sign up for unlimited ideas
+                </Link>
+              </p>
+            )}
           </div>
         </form>
       </div>
@@ -364,9 +442,9 @@ export const IdeaGenerator: React.FC = () => {
               <p className="text-primary-700 mb-4">
                 Sign up for free to save your generated ideas and access premium templates
               </p>
-              <button className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200">
+              <Link to="/signup" className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200 inline-block">
                 Sign Up Free
-              </button>
+              </Link>
             </div>
           )}
         </div>

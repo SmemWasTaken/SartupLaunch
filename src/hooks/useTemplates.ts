@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Template, CartItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useOnboarding } from '../contexts/OnboardingContext';
 import { getMockTemplates } from '../utils/mockData';
 
 interface UseTemplatesReturn {
@@ -16,6 +17,7 @@ interface UseTemplatesReturn {
 
 export const useTemplates = (): UseTemplatesReturn => {
   const { user, isDemoMode } = useAuth();
+  const { completeStep } = useOnboarding();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -124,6 +126,9 @@ export const useTemplates = (): UseTemplatesReturn => {
           ...template,
           isPurchased: updatedPurchased.includes(template.id),
         })));
+        
+        // Mark explore-templates step as complete
+        completeStep('explore-templates');
       }
 
       clearCart();
