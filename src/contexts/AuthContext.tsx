@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthState } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, isDemoMode } from '../lib/supabase';
 
 interface AuthContextType extends AuthState {
   signUp: (email: string, password: string, name: string) => Promise<void>;
@@ -32,28 +32,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for existing session
     checkSession();
     
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          await loadUserProfile(session.user.id);
-        } else {
-          setAuthState(prev => ({
-            ...prev,
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-          }));
+    // Only set up Supabase auth listener if not in demo mode
+    if (!isDemoMode) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (session?.user) {
+            await loadUserProfile(session.user.id);
+          } else {
+            setAuthState(prev => ({
+              ...prev,
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            }));
+          }
         }
-      }
-    );
+      );
 
-    return () => subscription.unsubscribe();
+      return () => subscription.unsubscribe();
+    }
   }, []);
 
   const checkSession = async () => {
     try {
-      // Check for demo mode
+      // Check for demo mode first
       const demoUser = localStorage.getItem('demo_user');
       if (demoUser) {
         const user = JSON.parse(demoUser);
@@ -66,7 +68,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check Supabase session
+      // If in demo mode or no Supabase credentials, enable demo mode
+      if (isDemoMode) {
+        setAuthState(prev => ({ ...prev, isLoading: false, isDemoMode: true }));
+        return;
+      }
+
+      // Check Supabase session only if we have real credentials
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         await loadUserProfile(session.user.id);
@@ -75,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Session check failed:', error);
-      setAuthState(prev => ({ ...prev, isLoading: false }));
+      setAuthState(prev => ({ ...prev, isLoading: false, isDemoMode: true }));
     }
   };
 
@@ -112,6 +120,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, name: string) => {
+    if (isDemoMode) {
+      // Demo mode signup
+      const demoUser: User = {
+        id: 'demo-user-' + Date.now(),
+        email,
+        name,
+        createdAt: new Date().toISOString(),
+        onboardingCompleted: false,
+        onboardingStep: 0,
+      };
+
+      localStorage.setItem('demo_user', JSON.stringify(demoUser));
+      setAuthState({
+        user: demoUser,
+        isAuthenticated: true,
+        isLoading: false,
+        isDemoMode: true,
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -143,6 +172,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    if (isDemoMode) {
+      // Demo mode signin
+      const demoUser: User = {
+        id: 'demo-user-' + Date.now(),
+        email,
+        name: email.split('@')[0],
+        createdAt: new Date().toISOString(),
+        onboardingCompleted: false,
+        onboardingStep: 0,
+      };
+
+      localStorage.setItem('demo_user', JSON.stringify(demoUser));
+      setAuthState({
+        user: demoUser,
+        isAuthenticated: true,
+        isLoading: false,
+        isDemoMode: true,
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,

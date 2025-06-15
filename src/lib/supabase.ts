@@ -1,7 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Use demo values if environment variables are not set
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://demo.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-key';
+
+// Check if we're in demo mode (no real Supabase credentials)
+export const isDemoMode = !import.meta.env.VITE_SUPABASE_URL || 
+                         import.meta.env.VITE_SUPABASE_URL === 'https://demo.supabase.co' ||
+                         !import.meta.env.VITE_SUPABASE_ANON_KEY ||
+                         import.meta.env.VITE_SUPABASE_ANON_KEY === 'demo-key';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
