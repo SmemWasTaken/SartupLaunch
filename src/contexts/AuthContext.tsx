@@ -55,6 +55,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkSession = async () => {
     try {
+      // Check for admin user first
+      const adminUser = localStorage.getItem('admin_user');
+      if (adminUser) {
+        const user = JSON.parse(adminUser);
+        setAuthState({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+          isDemoMode: false,
+        });
+        return;
+      }
+      
       // Check for demo mode first
       const demoUser = localStorage.getItem('demo_user');
       if (demoUser) {
@@ -172,6 +185,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    // Check for admin credentials
+    if (email === 'admin@startupLaunch.com' && password === 'LuckyDucky123!') {
+      const adminUser: User = {
+        id: 'admin-user',
+        email: 'admin@startupLaunch.com',
+        name: 'OmidDieMaschine',
+        createdAt: new Date().toISOString(),
+        onboardingCompleted: true,
+        onboardingStep: 3,
+      };
+
+      localStorage.setItem('admin_user', JSON.stringify(adminUser));
+      setAuthState({
+        user: adminUser,
+        isAuthenticated: true,
+        isLoading: false,
+        isDemoMode: false,
+      });
+      return;
+    }
+    
     if (isDemoMode) {
       // Demo mode signin
       const demoUser: User = {
@@ -207,6 +241,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      if (localStorage.getItem('admin_user')) {
+        localStorage.removeItem('admin_user');
+      }
       if (authState.isDemoMode) {
         localStorage.removeItem('demo_user');
         localStorage.removeItem('demo_ideas');

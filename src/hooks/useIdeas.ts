@@ -125,6 +125,16 @@ export const useIdeas = (): UseIdeasReturn => {
   const saveIdea = async (ideaData: Omit<StartupIdea, 'id' | 'userId' | 'createdAt'>) => {
     if (!user) throw new Error('User not authenticated');
 
+    // Check if idea already exists for this user
+    const existingIdea = ideas.find(idea => 
+      idea.title === ideaData.title && 
+      idea.description === ideaData.description
+    );
+    
+    if (existingIdea) {
+      throw new Error('You have already saved this idea');
+    }
+
     const newIdea: StartupIdea = {
       ...ideaData,
       id: `idea-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -134,10 +144,34 @@ export const useIdeas = (): UseIdeasReturn => {
 
     try {
       if (isDemoMode) {
+        // Check for duplicates in demo mode too
+        const demoIdeas = JSON.parse(localStorage.getItem('demo_ideas') || '[]');
+        const existingDemoIdea = demoIdeas.find((idea: StartupIdea) => 
+          idea.title === ideaData.title && 
+          idea.description === ideaData.description
+        );
+        
+        if (existingDemoIdea) {
+          throw new Error('You have already saved this idea');
+        }
+        
         const updatedIdeas = [newIdea, ...ideas];
         setIdeas(updatedIdeas);
         localStorage.setItem('demo_ideas', JSON.stringify(updatedIdeas));
       } else {
+        // Check database for existing idea
+        const { data: existingDbIdea } = await supabase
+          .from('startup_ideas')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('title', ideaData.title)
+          .eq('description', ideaData.description)
+          .single();
+          
+        if (existingDbIdea) {
+          throw new Error('You have already saved this idea');
+        }
+        
         const { error } = await supabase
           .from('startup_ideas')
           .insert({
@@ -159,7 +193,11 @@ export const useIdeas = (): UseIdeasReturn => {
       }
     } catch (error) {
       console.error('Failed to save idea:', error);
-      setError('Failed to save idea');
+      if (error instanceof Error && error.message === 'You have already saved this idea') {
+        setError('You have already saved this idea');
+      } else {
+        setError('Failed to save idea');
+      }
       throw error;
     }
   };
