@@ -10,6 +10,21 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TemplatesPage } from './pages/TemplatesPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import PricingPage from './pages/PricingPage';
+import FAQPage from './pages/FAQPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import CareersPage from './pages/CareersPage';
+import BlogPage from './pages/BlogPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import CookiePage from './pages/CookiePage';
+import RefundPage from './pages/RefundPage';
+import StartupGuidePage from './pages/StartupGuidePage';
+import SuccessStoriesPage from './pages/SuccessStoriesPage';
+import HelpCenterPage from './pages/HelpCenterPage';
+import APIDocsPage from './pages/APIDocsPage';
 import { useAuth } from './contexts/AuthContext';
 import { LoadingPage } from './components/LoadingSpinner';
 
@@ -56,6 +71,96 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         
+        <Route path="/how-it-works" element={
+          <AppLayout>
+            <HowItWorksPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/pricing" element={
+          <AppLayout>
+            <PricingPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/faq" element={
+          <AppLayout>
+            <FAQPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/about" element={
+          <AppLayout>
+            <AboutPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/contact" element={
+          <AppLayout>
+            <ContactPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/careers" element={
+          <AppLayout>
+            <CareersPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/blog" element={
+          <AppLayout>
+            <BlogPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/privacy" element={
+          <AppLayout>
+            <PrivacyPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/terms" element={
+          <AppLayout>
+            <TermsPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/cookies" element={
+          <AppLayout>
+            <CookiePage />
+          </AppLayout>
+        } />
+        
+        <Route path="/refunds" element={
+          <AppLayout>
+            <RefundPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/startup-guide" element={
+          <AppLayout>
+            <StartupGuidePage />
+          </AppLayout>
+        } />
+        
+        <Route path="/success-stories" element={
+          <AppLayout>
+            <SuccessStoriesPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/help" element={
+          <AppLayout>
+            <HelpCenterPage />
+          </AppLayout>
+        } />
+        
+        <Route path="/api-docs" element={
+          <AppLayout>
+            <APIDocsPage />
+          </AppLayout>
+        } />
+        
         <Route path="/templates" element={
           <AppLayout>
             <TemplatesPage />
@@ -90,61 +195,6 @@ const AppContent: React.FC = () => {
               </div>
             </AppLayout>
           </ProtectedRoute>
-        } />
-
-        {/* Placeholder Routes */}
-        <Route path="/how-it-works" element={
-          <AppLayout>
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h1>
-              <p className="text-xl text-gray-600">Coming soon...</p>
-            </div>
-          </AppLayout>
-        } />
-        
-        <Route path="/pricing" element={
-          <AppLayout>
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Pricing</h1>
-              <p className="text-xl text-gray-600">Coming soon...</p>
-            </div>
-          </AppLayout>
-        } />
-        
-        <Route path="/faq" element={
-          <AppLayout>
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">FAQ</h1>
-              <p className="text-xl text-gray-600">Coming soon...</p>
-            </div>
-          </AppLayout>
-        } />
-        
-        <Route path="/contact" element={
-          <AppLayout>
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-              <p className="text-xl text-gray-600">Coming soon...</p>
-            </div>
-          </AppLayout>
-        } />
-        
-        <Route path="/privacy" element={
-          <AppLayout>
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
-              <p className="text-xl text-gray-600">Coming soon...</p>
-            </div>
-          </AppLayout>
-        } />
-        
-        <Route path="/terms" element={
-          <AppLayout>
-            <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Terms of Service</h1>
-              <p className="text-xl text-gray-600">Coming soon...</p>
-            </div>
-          </AppLayout>
         } />
 
         {/* Catch all route */}
