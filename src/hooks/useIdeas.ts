@@ -88,7 +88,7 @@ export const useIdeas = (): UseIdeasReturn => {
       const openAI = new OpenAIService(apiKey);
       const generatedIdeas = await openAI.generateStartupIdeas(params);
 
-      const newIdeas: StartupIdea[] = mockIdeas.map(idea => ({
+      const newIdeas: StartupIdea[] = generatedIdeas.map(idea => ({
         ...idea,
         id: `idea-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         userId: user.id,

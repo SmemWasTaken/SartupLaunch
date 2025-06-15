@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Lightbulb, TrendingUp, Clock, DollarSign, Target, Heart, Save, ExternalLink } from 'lucide-react';
+import { Sparkles, Lightbulb, TrendingUp, Clock, DollarSign, Target, Heart, Save, ExternalLink, Settings, Key, AlertCircle } from 'lucide-react';
 import { IdeaGeneratorParams, StartupIdea } from '../types';
 import { useIdeas } from '../hooks/useIdeas';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,7 +31,7 @@ const timeframes = [
 ];
 
 export const IdeaGenerator: React.FC = () => {
-  const { generateIdeas, saveIdea, isLoading } = useIdeas();
+  const { generateIdeas, saveIdea, isLoading, error, setApiKey } = useIdeas();
   const { isAuthenticated } = useAuth();
   const [params, setParams] = useState<IdeaGeneratorParams>({
     interests: [],
@@ -43,6 +43,8 @@ export const IdeaGenerator: React.FC = () => {
   const [generatedIdeas, setGeneratedIdeas] = useState<StartupIdea[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState('');
 
   const handleInterestToggle = (interest: string) => {
     setParams(prev => ({
@@ -60,6 +62,14 @@ export const IdeaGenerator: React.FC = () => {
         ? prev.skills.filter(s => s !== skill)
         : [...prev.skills, skill]
     }));
+  };
+
+  const handleApiKeySubmit = () => {
+    if (tempApiKey.trim()) {
+      setApiKey(tempApiKey.trim());
+      setShowApiKeyModal(false);
+      setTempApiKey('');
+    }
   };
 
   const handleGenerate = async () => {
@@ -82,7 +92,11 @@ export const IdeaGenerator: React.FC = () => {
       });
     } catch (error) {
       console.error('Failed to generate ideas:', error);
-      setErrors(['Failed to generate ideas. Please try again.']);
+      if (error instanceof Error && error.message.includes('API key')) {
+        setShowApiKeyModal(true);
+      } else {
+        setErrors([error instanceof Error ? error.message : 'Failed to generate ideas. Please try again.']);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -122,6 +136,17 @@ export const IdeaGenerator: React.FC = () => {
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Tell us about your interests, skills, and preferences. Our AI will generate personalized startup ideas with detailed metrics and insights.
         </p>
+        
+        {/* API Key Settings */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowApiKeyModal(true)}
+            className="inline-flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            <Settings className="w-4 h-4" />
+            <span>Configure OpenAI API Key</span>
+          </button>
+        </div>
       </div>
 
       {/* Form */}
@@ -228,15 +253,21 @@ export const IdeaGenerator: React.FC = () => {
         </div>
 
         {/* Errors */}
-        {errors.length > 0 && (
+        {(errors.length > 0 || error) && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-            <ul className="space-y-1">
-              {errors.map((error, index) => (
-                <li key={index} className="text-sm text-red-600">
-                  • {error}
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                {error && (
+                  <p className="text-sm text-red-600">{error}</p>
+                )}
+                {errors.map((error, index) => (
+                  <p key={index} className="text-sm text-red-600">
+                    • {error}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -337,6 +368,66 @@ export const IdeaGenerator: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* API Key Modal */}
+      {showApiKeyModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                <Key className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">OpenAI API Key</h3>
+                <p className="text-sm text-gray-600">Required for AI idea generation</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  API Key
+                </label>
+                <input
+                  type="password"
+                  value={tempApiKey}
+                  onChange={(e) => setTempApiKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>How to get your API key:</strong>
+                </p>
+                <ol className="text-sm text-blue-700 mt-2 space-y-1">
+                  <li>1. Visit <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline">platform.openai.com/api-keys</a></li>
+                  <li>2. Sign in to your OpenAI account</li>
+                  <li>3. Click "Create new secret key"</li>
+                  <li>4. Copy and paste the key here</li>
+                </ol>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3 mt-6">
+              <button
+                onClick={() => setShowApiKeyModal(false)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApiKeySubmit}
+                disabled={!tempApiKey.trim()}
+                className="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Key
+              </button>
+            </div>
           </div>
         </div>
       )}
