@@ -215,3 +215,5 @@ export const OnboardingTour: React.FC = () => {
     </>
   );
 };
+
+export default OnboardingTour
