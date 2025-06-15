@@ -30,9 +30,13 @@ export const useIdeas = (): UseIdeasReturn => {
   }, [user, isDemoMode]);
 
   useEffect(() => {
-    // Load API key from localStorage
+    // Load API key from environment or localStorage
+    const envApiKey = import.meta.env.VITE_OPENAI_API_KEY;
     const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
+    
+    if (envApiKey) {
+      setApiKey(envApiKey);
+    } else if (savedApiKey) {
       setApiKey(savedApiKey);
     }
   }, []);
@@ -82,6 +86,10 @@ export const useIdeas = (): UseIdeasReturn => {
 
   const generateIdeas = async (params: IdeaGeneratorParams): Promise<StartupIdea[]> => {
     if (!user) throw new Error('User not authenticated');
+    
+    if (!apiKey) {
+      throw new Error('OpenAI API key is required. Please configure your API key in settings.');
+    }
 
     setIsLoading(true);
     try {
@@ -108,7 +116,10 @@ export const useIdeas = (): UseIdeasReturn => {
 
   const handleSetApiKey = (newApiKey: string) => {
     setApiKey(newApiKey);
-    localStorage.setItem('openai_api_key', newApiKey);
+    // Only save to localStorage if not using environment variable
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      localStorage.setItem('openai_api_key', newApiKey);
+    }
     setError(null);
   };
   const saveIdea = async (ideaData: Omit<StartupIdea, 'id' | 'userId' | 'createdAt'>) => {
