@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StartupIdea, IdeaGeneratorParams } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useOnboarding } from '../contexts/OnboardingContext';
 import { supabase } from '../lib/supabase';
 import { OpenAIService } from '../lib/openai';
 
@@ -18,6 +19,7 @@ interface UseIdeasReturn {
 
 export const useIdeas = (): UseIdeasReturn => {
   const { user, isDemoMode } = useAuth();
+  const { completeStep } = useOnboarding();
   const [ideas, setIdeas] = useState<StartupIdea[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +42,7 @@ export const useIdeas = (): UseIdeasReturn => {
       setApiKey(savedApiKey);
     }
   }, []);
+
   const loadIdeas = async () => {
     if (!user) return;
 
@@ -104,6 +107,9 @@ export const useIdeas = (): UseIdeasReturn => {
         isFavorite: false,
       }));
 
+      // Mark generate-idea step as complete
+      completeStep('generate-idea');
+
       return newIdeas;
     } catch (error) {
       console.error('Failed to generate ideas:', error);
@@ -122,6 +128,7 @@ export const useIdeas = (): UseIdeasReturn => {
     }
     setError(null);
   };
+
   const saveIdea = async (ideaData: Omit<StartupIdea, 'id' | 'userId' | 'createdAt'>) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -158,6 +165,9 @@ export const useIdeas = (): UseIdeasReturn => {
         const updatedIdeas = [newIdea, ...ideas];
         setIdeas(updatedIdeas);
         localStorage.setItem('demo_ideas', JSON.stringify(updatedIdeas));
+        
+        // Mark save-idea step as complete
+        completeStep('save-idea');
       } else {
         // Check database for existing idea
         const { data: existingDbIdea } = await supabase
@@ -190,6 +200,9 @@ export const useIdeas = (): UseIdeasReturn => {
 
         if (error) throw error;
         setIdeas(prev => [newIdea, ...prev]);
+        
+        // Mark save-idea step as complete
+        completeStep('save-idea');
       }
     } catch (error) {
       console.error('Failed to save idea:', error);

@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Circle, ChevronRight, Target, TrendingUp } from 'lucide-react';
+import { Check, Circle, ChevronRight, Target, TrendingUp, Lightbulb, ShoppingBag, User, Play } from 'lucide-react';
 import { useOnboarding } from '../contexts/OnboardingContext';
-import { onboardingSteps } from '../config/onboarding';
 
 interface OnboardingChecklistProps {
   className?: string;
@@ -15,37 +14,55 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
 }) => {
   const navigate = useNavigate();
   const { 
+    steps,
     isStepComplete, 
     getCompletedStepsCount, 
     getTotalStepsCount, 
-    getProgressPercentage 
+    getProgressPercentage,
+    completeStep
   } = useOnboarding();
 
-  const handleStepClick = (stepId: string, action: string) => {
-    switch (action) {
-      case 'scroll-to-generate':
-        const generateSection = document.getElementById('idea-generator');
-        if (generateSection) {
-          generateSection.scrollIntoView({ behavior: 'smooth' });
-        }
+  const handleStepClick = (stepId: string) => {
+    switch (stepId) {
+      case 'generate-idea':
+        navigate('/dashboard/generate');
         break;
-      case 'scroll-to-claim':
-        const claimButton = document.getElementById('claim-button');
-        if (claimButton) {
-          claimButton.scrollIntoView({ behavior: 'smooth' });
+      case 'save-idea':
+        // Check if user has any saved ideas
+        const savedIdeas = localStorage.getItem('demo_ideas');
+        if (savedIdeas && JSON.parse(savedIdeas).length > 0) {
+          completeStep('save-idea');
         } else {
-          // If no claim button visible, scroll to idea generator first
-          const ideaSection = document.getElementById('idea-generator');
-          if (ideaSection) {
-            ideaSection.scrollIntoView({ behavior: 'smooth' });
-          }
+          navigate('/dashboard/generate');
         }
         break;
-      case 'navigate-to-dashboard':
-        navigate('/dashboard');
+      case 'explore-templates':
+        navigate('/templates');
+        completeStep('explore-templates');
+        break;
+      case 'complete-profile':
+        // For demo, just mark as complete
+        completeStep('complete-profile');
+        break;
+      case 'take-tour':
+        // Trigger the dashboard tour
+        if ((window as any).showDashboardTour) {
+          (window as any).showDashboardTour();
+        }
         break;
       default:
         break;
+    }
+  };
+
+  const getStepIcon = (stepId: string) => {
+    switch (stepId) {
+      case 'generate-idea': return <Lightbulb className="w-4 h-4" />;
+      case 'save-idea': return <Target className="w-4 h-4" />;
+      case 'explore-templates': return <ShoppingBag className="w-4 h-4" />;
+      case 'complete-profile': return <User className="w-4 h-4" />;
+      case 'take-tour': return <Play className="w-4 h-4" />;
+      default: return <Circle className="w-4 h-4" />;
     }
   };
 
@@ -74,12 +91,12 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
         </div>
 
         <div className="space-y-2">
-          {onboardingSteps.map((step) => {
+          {steps.map((step) => {
             const isComplete = isStepComplete(step.id);
             return (
               <button
                 key={step.id}
-                onClick={() => handleStepClick(step.id, step.action)}
+                onClick={() => handleStepClick(step.id)}
                 className={`w-full flex items-center space-x-3 p-2 rounded-lg transition-all hover:bg-gray-50 ${
                   isComplete ? 'opacity-75' : 'hover:shadow-sm'
                 }`}
@@ -93,7 +110,7 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                   {isComplete ? (
                     <Check className="w-4 h-4" />
                   ) : (
-                    <Circle className="w-3 h-3" />
+                    getStepIcon(step.id)
                   )}
                 </div>
                 <div className="flex-1 text-left">
@@ -115,15 +132,15 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   }
 
   return (
-    <div className={`bg-white rounded-2xl shadow-lg p-6 ${className}`}>
+    <div className={`bg-white rounded-2xl shadow-lg p-6 ${className}`} id="onboarding-progress">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
             <Target className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Getting Started</h3>
-            <p className="text-gray-600 text-sm">Complete these steps to launch your startup</p>
+            <h3 className="text-xl font-bold text-gray-900">Complete Your Setup</h3>
+            <p className="text-gray-600 text-sm">Follow these steps to get the most out of StartupLaunch</p>
           </div>
         </div>
         <div className="text-right">
@@ -152,12 +169,12 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
 
       {/* Steps List */}
       <div className="space-y-4">
-        {onboardingSteps.map((step, index) => {
+        {steps.map((step, index) => {
           const isComplete = isStepComplete(step.id);
           return (
             <button
               key={step.id}
-              onClick={() => handleStepClick(step.id, step.action)}
+              onClick={() => handleStepClick(step.id)}
               className={`w-full flex items-start space-x-4 p-4 rounded-xl transition-all ${
                 isComplete 
                   ? 'bg-green-50 border border-green-200' 
@@ -179,12 +196,17 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
               
               <div className="flex-1 text-left">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-lg">{step.icon}</span>
+                  {getStepIcon(step.id)}
                   <h4 className={`font-semibold ${
                     isComplete ? 'text-green-700 line-through' : 'text-gray-900'
                   }`}>
                     {step.title}
                   </h4>
+                  {step.optional && (
+                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                      Optional
+                    </span>
+                  )}
                 </div>
                 <p className={`text-sm ${
                   isComplete ? 'text-green-600' : 'text-gray-600'
@@ -206,7 +228,7 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
         <div className="mt-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl text-white text-center">
           <div className="text-lg font-semibold mb-1">🎉 Congratulations!</div>
           <div className="text-sm opacity-90">
-            You've completed the onboarding. Ready to launch your startup!
+            You've completed the setup. You're ready to launch your startup!
           </div>
         </div>
       )}

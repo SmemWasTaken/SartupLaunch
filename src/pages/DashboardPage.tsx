@@ -11,19 +11,22 @@ import {
   Heart,
   Download,
   BarChart3,
-  Target
+  Target,
+  Play
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useIdeas } from '../hooks/useIdeas';
 import { useTemplates } from '../hooks/useTemplates';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import OnboardingChecklist from '../components/OnboardingChecklist';
+import { OnboardingTour } from '../components/OnboardingTour';
 
 export const DashboardPage: React.FC = () => {
   const { user, isDemoMode } = useAuth();
   const { ideas, isLoading: ideasLoading } = useIdeas();
   const { templates } = useTemplates();
-  const { showOnboarding, completedSteps, totalSteps } = useOnboarding();
+  const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
 
   const recentIdeas = ideas.slice(0, 3);
   const favoriteIdeas = ideas.filter(idea => idea.isFavorite);
@@ -53,7 +56,7 @@ export const DashboardPage: React.FC = () => {
     },
     {
       label: 'Progress',
-      value: `${Math.round((completedSteps / totalSteps) * 100)}%`,
+      value: `${Math.round((getCompletedStepsCount() / getTotalStepsCount()) * 100)}%`,
       icon: Target,
       color: 'text-accent-600',
       bgColor: 'bg-accent-50',
@@ -84,6 +87,12 @@ export const DashboardPage: React.FC = () => {
     },
   ];
 
+  const handleTourClick = () => {
+    if ((window as any).showDashboardTour) {
+      (window as any).showDashboardTour();
+    }
+  };
+
   if (ideasLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -95,7 +104,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+      <div id="dashboard-header" className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome back, {user?.name}!
@@ -112,10 +121,11 @@ export const DashboardPage: React.FC = () => {
         
         <div className="flex items-center space-x-4">
           <button
-            onClick={showOnboarding}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200"
+            onClick={handleTourClick}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200 flex items-center space-x-2"
           >
-            Take Tour
+            <Play className="w-4 h-4" />
+            <span>Take Tour</span>
           </button>
           <Link
             to="/dashboard/generate"
@@ -128,7 +138,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <div
             key={index}
@@ -148,7 +158,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickActions.map((action, index) => (
@@ -170,13 +180,13 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Ideas */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div id="recent-ideas" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Recent Ideas</h2>
             <Link
-              to="/ideas"
+              to="/dashboard/generate"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
             >
               View all
@@ -223,7 +233,7 @@ export const DashboardPage: React.FC = () => {
               <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">No ideas generated yet</p>
               <Link
-                to="/"
+                to="/dashboard/generate"
                 className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
               >
                 Generate Your First Idea
@@ -232,92 +242,72 @@ export const DashboardPage: React.FC = () => {
           )}
         </div>
 
-        {/* Purchased Templates */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Your Templates</h2>
-            <Link
-              to="/templates"
-              className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
-            >
-              Browse more
-            </Link>
-          </div>
+        {/* Onboarding Progress */}
+        <div className="space-y-6">
+          <OnboardingChecklist compact={true} />
           
-          {purchasedTemplates.length > 0 ? (
-            <div className="space-y-4">
-              {purchasedTemplates.slice(0, 3).map((template) => (
-                <div
-                  key={template.id}
-                  className="flex items-center space-x-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <img
-                    src={template.thumbnailUrl}
-                    alt={template.title}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm truncate">
-                      {template.title}
-                    </h3>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">
-                        {template.category}
-                      </span>
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-gray-500">{template.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="bg-green-50 hover:bg-green-100 text-green-700 p-2 rounded-lg transition-colors duration-200">
-                    <Download className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No templates purchased yet</p>
+          {/* Purchased Templates */}
+          <div id="templates-section" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Your Templates</h2>
               <Link
                 to="/templates"
-                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
               >
-                Browse Templates
+                Browse more
               </Link>
             </div>
-          )}
+            
+            {purchasedTemplates.length > 0 ? (
+              <div className="space-y-4">
+                {purchasedTemplates.slice(0, 3).map((template) => (
+                  <div
+                    key={template.id}
+                    className="flex items-center space-x-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <img
+                      src={template.thumbnailUrl}
+                      alt={template.title}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 text-sm truncate">
+                        {template.title}
+                      </h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">
+                          {template.category}
+                        </span>
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                          <span className="text-xs text-gray-500">{template.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button className="bg-green-50 hover:bg-green-100 text-green-700 p-2 rounded-lg transition-colors duration-200">
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">No templates purchased yet</p>
+                <Link
+                  to="/templates"
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                >
+                  Browse Templates
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Progress Section */}
-      {completedSteps < totalSteps && (
-        <div className="bg-gradient-to-r from-primary-50 to-accent-50 rounded-2xl p-6 border border-primary-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Complete Your Setup
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {completedSteps} of {totalSteps} steps completed
-              </p>
-            </div>
-            <button
-              onClick={showOnboarding}
-              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
-            >
-              Continue Setup
-            </button>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-primary-600 to-accent-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(completedSteps / totalSteps) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
+      {/* Onboarding Tour Component */}
+      <OnboardingTour />
     </div>
   );
 };

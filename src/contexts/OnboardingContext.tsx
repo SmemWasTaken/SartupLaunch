@@ -14,6 +14,12 @@ interface OnboardingContextType {
   nextStep: () => void;
   prevStep: () => void;
   skipOnboarding: () => void;
+  isStepComplete: (stepId: string) => boolean;
+  getCompletedStepsCount: () => number;
+  getTotalStepsCount: () => number;
+  getProgressPercentage: () => number;
+  tourSeen: boolean;
+  markTourSeen: () => Promise<void>;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -28,16 +34,16 @@ export const useOnboarding = () => {
 
 const initialSteps: OnboardingStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to StartupLaunch!',
-    description: 'Let\'s take a quick tour to get you started with generating amazing startup ideas.',
+    id: 'generate-idea',
+    title: 'Generate Your First Idea',
+    description: 'Use our AI-powered generator to create personalized startup ideas based on your interests.',
     completed: false,
     optional: false,
   },
   {
-    id: 'generate-idea',
-    title: 'Generate Your First Idea',
-    description: 'Use our AI-powered generator to create personalized startup ideas based on your interests.',
+    id: 'save-idea',
+    title: 'Save an Idea',
+    description: 'Save your favorite generated idea to your dashboard for future reference.',
     completed: false,
     optional: false,
   },
@@ -46,19 +52,19 @@ const initialSteps: OnboardingStep[] = [
     title: 'Explore Templates',
     description: 'Browse our marketplace of professional business templates to accelerate your launch.',
     completed: false,
-    optional: true,
+    optional: false,
   },
   {
-    id: 'customize-profile',
-    title: 'Customize Your Profile',
-    description: 'Complete your profile to get more personalized recommendations.',
+    id: 'complete-profile',
+    title: 'Complete Your Profile',
+    description: 'Add more details to your profile to get better personalized recommendations.',
     completed: false,
     optional: true,
   },
   {
-    id: 'complete',
-    title: 'You\'re All Set!',
-    description: 'Congratulations! You\'re ready to start building your startup empire.',
+    id: 'take-tour',
+    title: 'Take the Dashboard Tour',
+    description: 'Learn about all the features available in your dashboard.',
     completed: false,
     optional: false,
   },
@@ -69,35 +75,27 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [steps, setSteps] = useState<OnboardingStep[]>(initialSteps);
   const [currentStep, setCurrentStep] = useState(0);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [tourSeen, setTourSeen] = useState(false);
 
   useEffect(() => {
-    if (user && !user.onboardingCompleted) {
-      // Auto-show onboarding for new users
-      const timer = setTimeout(() => {
-        setIsOnboardingOpen(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    // Load onboarding progress from localStorage for demo mode
     if (isDemoMode) {
-      const saved = localStorage.getItem('demo_onboarding');
-      if (saved) {
-        const { steps: savedSteps, currentStep: savedCurrentStep } = JSON.parse(saved);
-        setSteps(savedSteps);
-        setCurrentStep(savedCurrentStep);
+      // Load from localStorage for demo mode
+      const savedSteps = localStorage.getItem('demo_onboarding_steps');
+      const savedTourSeen = localStorage.getItem('demo_tour_seen');
+      
+      if (savedSteps) {
+        setSteps(JSON.parse(savedSteps));
+      }
+      
+      if (savedTourSeen) {
+        setTourSeen(JSON.parse(savedTourSeen));
       }
     }
   }, [isDemoMode]);
 
-  const saveProgress = (newSteps: OnboardingStep[], newCurrentStep: number) => {
+  const saveProgress = (newSteps: OnboardingStep[]) => {
     if (isDemoMode) {
-      localStorage.setItem('demo_onboarding', JSON.stringify({
-        steps: newSteps,
-        currentStep: newCurrentStep,
-      }));
+      localStorage.setItem('demo_onboarding_steps', JSON.stringify(newSteps));
     }
   };
 
@@ -114,14 +112,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       step.id === stepId ? { ...step, completed: true } : step
     );
     setSteps(newSteps);
-    saveProgress(newSteps, currentStep);
+    saveProgress(newSteps);
 
     // Check if all required steps are completed
     const requiredSteps = newSteps.filter(step => !step.optional);
     const completedRequired = requiredSteps.filter(step => step.completed);
     
-    if (completedRequired.length === requiredSteps.length) {
-      // Mark onboarding as completed
+    if (completedRequired.length === requiredSteps.length && user) {
       updateUser({ onboardingCompleted: true });
     }
   };
@@ -130,7 +127,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (currentStep < steps.length - 1) {
       const newCurrentStep = currentStep + 1;
       setCurrentStep(newCurrentStep);
-      saveProgress(steps, newCurrentStep);
     }
   };
 
@@ -138,13 +134,42 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (currentStep > 0) {
       const newCurrentStep = currentStep - 1;
       setCurrentStep(newCurrentStep);
-      saveProgress(steps, newCurrentStep);
     }
   };
 
   const skipOnboarding = () => {
     setIsOnboardingOpen(false);
-    updateUser({ onboardingCompleted: true });
+    if (user) {
+      updateUser({ onboardingCompleted: true });
+    }
+  };
+
+  const isStepComplete = (stepId: string): boolean => {
+    const step = steps.find(s => s.id === stepId);
+    return step?.completed || false;
+  };
+
+  const getCompletedStepsCount = (): number => {
+    return steps.filter(step => step.completed).length;
+  };
+
+  const getTotalStepsCount = (): number => {
+    return steps.length;
+  };
+
+  const getProgressPercentage = (): number => {
+    const completed = getCompletedStepsCount();
+    const total = getTotalStepsCount();
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  };
+
+  const markTourSeen = async (): Promise<void> => {
+    setTourSeen(true);
+    completeStep('take-tour');
+    
+    if (isDemoMode) {
+      localStorage.setItem('demo_tour_seen', 'true');
+    }
   };
 
   const completedSteps = steps.filter(step => step.completed).length;
@@ -162,6 +187,12 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     nextStep,
     prevStep,
     skipOnboarding,
+    isStepComplete,
+    getCompletedStepsCount,
+    getTotalStepsCount,
+    getProgressPercentage,
+    tourSeen,
+    markTourSeen,
   };
 
   return (

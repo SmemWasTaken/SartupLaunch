@@ -9,6 +9,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { IdeaGenerationPage } from './pages/IdeaGenerationPage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import PricingPage from './pages/PricingPage';
@@ -179,7 +180,7 @@ const AppContent: React.FC = () => {
         <Route path="/dashboard/generate" element={
           <ProtectedRoute>
             <AppLayout>
-              <HomePage />
+              <IdeaGenerationPage />
             </AppLayout>
           </ProtectedRoute>
         } />
