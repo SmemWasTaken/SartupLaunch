@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, X, CreditCard, ArrowLeft, Check, Shield, Clock } from 'lucide-react';
+import { ShoppingCart, X, CreditCard, ArrowLeft, Check, Shield, Clock, Star } from 'lucide-react';
 import { useTemplates } from '../hooks/useTemplates';
 import { useAuth } from '../contexts/AuthContext';
 import { LoadingSpinner } from '../components/LoadingSpinner';
