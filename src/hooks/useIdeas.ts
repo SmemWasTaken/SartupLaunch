@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { StartupIdea, IdeaGeneratorParams } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { generateMockIdeas } from '../utils/mockData';
+import { OpenAIService } from '../lib/openai';
 
 interface UseIdeasReturn {
   ideas: StartupIdea[];
@@ -12,12 +12,16 @@ interface UseIdeasReturn {
   toggleFavorite: (ideaId: string) => Promise<void>;
   deleteIdea: (ideaId: string) => Promise<void>;
   refresh: () => Promise<void>;
+  error: string | null;
+  setApiKey: (apiKey: string) => void;
 }
 
 export const useIdeas = (): UseIdeasReturn => {
   const { user, isDemoMode } = useAuth();
   const [ideas, setIdeas] = useState<StartupIdea[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
 
   useEffect(() => {
     if (user) {
@@ -25,6 +29,13 @@ export const useIdeas = (): UseIdeasReturn => {
     }
   }, [user, isDemoMode]);
 
+  useEffect(() => {
+    // Load API key from localStorage
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
   const loadIdeas = async () => {
     if (!user) return;
 
@@ -63,6 +74,7 @@ export const useIdeas = (): UseIdeasReturn => {
       }
     } catch (error) {
       console.error('Failed to load ideas:', error);
+      setError('Failed to load ideas');
     } finally {
       setIsLoading(false);
     }
@@ -73,11 +85,8 @@ export const useIdeas = (): UseIdeasReturn => {
 
     setIsLoading(true);
     try {
-      // Simulate AI generation with mock data
-      const mockIdeas = generateMockIdeas(params);
-      
-      // Add realistic delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const openAI = new OpenAIService(apiKey);
+      const generatedIdeas = await openAI.generateStartupIdeas(params);
 
       const newIdeas: StartupIdea[] = mockIdeas.map(idea => ({
         ...idea,
@@ -90,12 +99,18 @@ export const useIdeas = (): UseIdeasReturn => {
       return newIdeas;
     } catch (error) {
       console.error('Failed to generate ideas:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate ideas');
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSetApiKey = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    localStorage.setItem('openai_api_key', newApiKey);
+    setError(null);
+  };
   const saveIdea = async (ideaData: Omit<StartupIdea, 'id' | 'userId' | 'createdAt'>) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -133,6 +148,7 @@ export const useIdeas = (): UseIdeasReturn => {
       }
     } catch (error) {
       console.error('Failed to save idea:', error);
+      setError('Failed to save idea');
       throw error;
     }
   };
@@ -159,6 +175,7 @@ export const useIdeas = (): UseIdeasReturn => {
       }
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
+      setError('Failed to update favorite status');
       throw error;
     }
   };
@@ -180,6 +197,7 @@ export const useIdeas = (): UseIdeasReturn => {
       }
     } catch (error) {
       console.error('Failed to delete idea:', error);
+      setError('Failed to delete idea');
       throw error;
     }
   };
@@ -196,5 +214,7 @@ export const useIdeas = (): UseIdeasReturn => {
     toggleFavorite,
     deleteIdea,
     refresh,
+    error,
+    setApiKey: handleSetApiKey,
   };
 };
