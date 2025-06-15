@@ -31,6 +31,7 @@ import ProfilePage from './pages/ProfilePage';
 import { useAuth } from './contexts/AuthContext';
 import { LoadingPage } from './components/LoadingSpinner';
 import AdminDashboard from './components/AdminDashboard';
+import AllIdeasPage from './pages/AllIdeasPage';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -203,6 +204,14 @@ const AppContent: React.FC = () => {
                   <p className="text-gray-600">Analytics features coming soon...</p>
                 </div>
               </div>
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/dashboard/ideas" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AllIdeasPage />
             </AppLayout>
           </ProtectedRoute>
         } />

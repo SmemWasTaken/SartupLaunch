@@ -186,7 +186,7 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Recent Ideas</h2>
             <Link
-              to="/dashboard/generate"
+              to="/dashboard/ideas"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
             >
               View all
