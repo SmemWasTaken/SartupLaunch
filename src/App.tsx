@@ -34,7 +34,7 @@ import AdminDashboard from './components/AdminDashboard';
 import AllIdeasPage from './pages/AllIdeasPage';
 
 // Protected Route Component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -43,6 +43,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && !isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -217,7 +221,7 @@ const AppContent: React.FC = () => {
         } />
 
         <Route path="/admin" element={
-          <ProtectedRoute>
+          <ProtectedRoute adminOnly>
             <AppLayout>
               <AdminDashboard />
             </AppLayout>
