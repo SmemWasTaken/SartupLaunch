@@ -3,12 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Rocket, User, LogOut, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTemplates } from '../hooks/useTemplates';
-import { useTemplates } from '../hooks/useTemplates';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const { user, isAuthenticated, signOut, isDemoMode } = useAuth();
-  const { cart } = useTemplates();
   const { cart } = useTemplates();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -69,19 +67,6 @@ export const Header: React.FC = () => {
                 {/* Cart */}
                 <Link
                   to="/cart"
-                  className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
-                      {cart.length}
-                    </span>
-                  )}
-                </Link>
-
-                {/* Cart */}
-                <Link
-                  to="/templates"
                   className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
                 >
                   <ShoppingCart className="w-5 h-5" />
