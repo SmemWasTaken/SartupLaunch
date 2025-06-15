@@ -112,9 +112,27 @@ export const IdeaGenerator: React.FC = () => {
       });
       
       // Show success feedback
-      alert('Idea saved to your dashboard!');
+      const successMessage = document.createElement('div');
+      successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      successMessage.textContent = 'Idea saved to your dashboard!';
+      document.body.appendChild(successMessage);
+      
+      setTimeout(() => {
+        document.body.removeChild(successMessage);
+      }, 3000);
     } catch (err) {
-      setError('Failed to save idea');
+      if (err instanceof Error && err.message === 'You have already saved this idea') {
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'fixed top-4 right-4 bg-orange-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        errorMessage.textContent = 'You have already saved this idea';
+        document.body.appendChild(errorMessage);
+        
+        setTimeout(() => {
+          document.body.removeChild(errorMessage);
+        }, 3000);
+      } else {
+        setError('Failed to save idea');
+      }
     }
   };
 

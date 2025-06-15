@@ -110,29 +110,6 @@ export const SignupPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Demo Mode Banner */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-          <div className="flex items-start space-x-3">
-            <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-xs font-bold text-yellow-900">!</span>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm text-yellow-800 font-medium">
-                Try without signing up
-              </p>
-              <p className="text-xs text-yellow-700">
-                Experience all features with demo mode - no account required
-              </p>
-              <button
-                onClick={handleDemoMode}
-                className="text-xs bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-3 py-1 rounded-lg font-medium transition-colors duration-200"
-              >
-                Enter Demo Mode
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">

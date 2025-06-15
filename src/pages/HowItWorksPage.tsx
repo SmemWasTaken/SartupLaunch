@@ -104,12 +104,6 @@ const HowItWorksPage: React.FC = () => {
               <span>Start Your Journey</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link
-              to="/"
-              className="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-all"
-            >
-              Try Demo
-            </Link>
           </div>
         </div>
       </section>

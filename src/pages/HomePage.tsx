@@ -68,14 +68,6 @@ export const HomePage: React.FC = () => {
                 <span>Get Started Free</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
-              
-              <Link
-                to="/demo"
-                onClick={() => handleCTAClick('try_demo')}
-                className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md"
-              >
-                Try Demo
-              </Link>
             </div>
             
             <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
