@@ -1,62 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Lightbulb, Zap, Rocket, CheckCircle, ArrowRight, Brain, Target, TrendingUp, Users, Star, Clock } from 'lucide-react';
+import HowItWorksWizard from '../components/HowItWorksWizard';
 
 const HowItWorksPage: React.FC = () => {
-  const steps = [
-    {
-      icon: <Brain className="w-8 h-8" />,
-      title: "Tell Us About Yourself",
-      description: "Share your interests, skills, and entrepreneurial goals. Our AI analyzes your unique profile to understand what type of business would suit you best.",
-      details: [
-        "Describe your passions and expertise areas",
-        "Share your available time and budget",
-        "Tell us about market gaps you've noticed",
-        "Set your revenue and timeline goals"
-      ],
-      image: "https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      icon: <Zap className="w-8 h-8" />,
-      title: "AI Generates Personalized Ideas",
-      description: "Our advanced AI engine processes thousands of successful startup patterns and market trends to create ideas perfectly tailored to your profile.",
-      details: [
-        "Market analysis and validation data",
-        "Revenue potential assessment",
-        "Competition landscape overview",
-        "Implementation difficulty rating",
-        "Time-to-market estimates"
-      ],
-      image: "https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      icon: <Target className="w-8 h-8" />,
-      title: "Choose Your Perfect Match",
-      description: "Review multiple AI-generated ideas with detailed breakdowns. Each idea includes market size, revenue projections, and step-by-step launch guidance.",
-      details: [
-        "Detailed business concept explanations",
-        "Market opportunity analysis",
-        "Required skills and resources",
-        "Potential challenges and solutions",
-        "Success probability scoring"
-      ],
-      image: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      icon: <Rocket className="w-8 h-8" />,
-      title: "Launch with Professional Tools",
-      description: "Access our marketplace of templates, legal documents, and business tools. Everything you need to go from idea to profitable business.",
-      details: [
-        "Business plan templates",
-        "Legal document packages",
-        "Marketing automation setups",
-        "Financial planning tools",
-        "Brand identity resources"
-      ],
-      image: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=600"
-    }
-  ];
-
   const features = [
     {
       icon: <TrendingUp className="w-6 h-6" />,
@@ -108,68 +55,13 @@ const HowItWorksPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Steps Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Your Path to Startup Success
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Follow our proven 4-step process that has helped thousands of entrepreneurs 
-              launch successful businesses.
-            </p>
-          </div>
-
-          <div className="space-y-20">
-            {steps.map((step, index) => (
-              <div key={index} className="flex flex-col lg:flex-row items-center gap-12">
-                <div className={`flex-1 ${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-                  <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
-                    <div className="flex items-center space-x-4 mb-6">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
-                        {step.icon}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-blue-600 mb-1">
-                          Step {index + 1}
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900">
-                          {step.title}
-                        </h3>
-                      </div>
-                    </div>
-                    <p className="text-gray-600 text-lg mb-6 leading-relaxed">
-                      {step.description}
-                    </p>
-                    <ul className="space-y-3">
-                      {step.details.map((detail, detailIndex) => (
-                        <li key={detailIndex} className="flex items-start text-gray-700">
-                          <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                          <span>{detail}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className={`flex-1 ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                  <div className="relative">
-                    <img
-                      src={step.image}
-                      alt={step.title}
-                      className="w-full h-80 object-cover rounded-2xl shadow-lg"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Interactive Wizard Section */}
+      <section className="py-20 bg-white">
+        <HowItWorksWizard />
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -184,7 +76,7 @@ const HowItWorksPage: React.FC = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="text-center p-6 rounded-2xl hover:bg-gray-50 transition-colors duration-200 group"
+                className="text-center p-6 rounded-2xl hover:bg-white transition-colors duration-200 group"
               >
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
                   <div className="text-blue-600">

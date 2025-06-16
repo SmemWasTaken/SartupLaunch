@@ -1,375 +1,107 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Zap, Crown, Rocket, Star, ArrowRight, Users, Shield, Headphones, Infinity, BarChart3, Globe, Brain, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle, Star, Zap, Users, Shield } from 'lucide-react';
+import PricingTable from '../components/PricingTable';
 
 const PricingPage: React.FC = () => {
-  const [isAnnual, setIsAnnual] = useState(false);
-
-  const plans = [
+  const benefits = [
     {
-      name: 'Starter',
-      icon: <Zap className="w-8 h-8" />,
-      monthlyPrice: 0,
-      annualPrice: 0,
-      description: 'Perfect for exploring startup ideas and getting started',
-      features: [
-        '2 AI-generated startup ideas per month',
-        'Basic business concept templates (3)',
-        'Community forum access',
-        'Email support (72h response)',
-        'Basic market analysis',
-        'Idea favoriting and saving',
-        'Access to startup guide',
-        'Basic business plan template'
-      ],
-      limitations: [
-        'Limited template access',
-        'No premium AI features',
-        'Community support only',
-        'No advanced analytics',
-        'No priority support'
-      ],
-      cta: 'Get Started Free',
-      popular: false,
-      color: 'from-gray-500 to-gray-600'
+      icon: <Star className="w-6 h-6" />,
+      title: "AI-Powered Idea Generation",
+      description: "Get personalized startup ideas based on your interests, skills, and market trends."
     },
     {
-      name: 'Pro',
-      icon: <Crown className="w-8 h-8" />,
-      monthlyPrice: 29,
-      annualPrice: 290,
-      description: 'For serious entrepreneurs ready to launch their startup',
-      features: [
-        'Unlimited AI-generated startup ideas',
-        'Access to all premium templates (50+)',
-        'Advanced AI business plan generator',
-        'Legal document bundles (contracts, terms, privacy)',
-        'Financial planning tools & models',
-        'Marketing automation setup guides',
-        'Priority email support (24h response)',
-        'Video tutorials & masterclasses',
-        'Advanced market trend analysis',
-        'Competitor research tools',
-        'Custom branding templates',
-        'Export to multiple formats (PDF, Word, Excel)',
-        'Business model canvas generator',
-        'Pitch deck templates (10+ designs)',
-        'Financial projection calculator',
-        'Customer persona builder',
-        'SWOT analysis tools',
-        'Go-to-market strategy templates',
-        'Social media content calendar',
-        'Email marketing templates',
-        'SEO keyword research tools',
-        'Analytics dashboard',
-        'Team collaboration (up to 3 users)',
-        'Version history & backups',
-        'Mobile app access'
-      ],
-      limitations: [],
-      cta: 'Start Pro Trial',
-      popular: true,
-      color: 'from-blue-500 to-purple-600'
+      icon: <Zap className="w-6 h-6" />,
+      title: "Launch-Ready Templates",
+      description: "Access our library of professional templates for business plans, legal documents, and more."
     },
     {
-      name: 'Enterprise',
-      icon: <Rocket className="w-8 h-8" />,
-      monthlyPrice: 99,
-      annualPrice: 990,
-      description: 'For teams, agencies, and scaling businesses',
-      features: [
-        'Everything in Pro',
-        'Unlimited team collaboration',
-        'White-label solutions & custom branding',
-        'API access for integrations',
-        'Custom template creation & modification',
-        'Dedicated account manager',
-        'Phone support (4h response)',
-        'Custom AI model training',
-        'Advanced analytics dashboard',
-        'Multi-brand management',
-        'Priority feature requests',
-        'Onboarding consultation (2 hours)',
-        'Monthly strategy calls (1 hour)',
-        'Custom integrations (Zapier, Slack, etc.)',
-        'Advanced security & compliance',
-        'Single Sign-On (SSO)',
-        'Custom workflows & automation',
-        'Data export & migration tools',
-        'Advanced reporting & insights',
-        'Custom domain for sharing',
-        'Enterprise-grade support SLA',
-        'Training sessions for teams',
-        'Custom legal document review',
-        'Investor pitch preparation assistance',
-        'Market research custom reports',
-        'Competitive intelligence alerts',
-        'Custom AI business advisor',
-        'Unlimited storage & bandwidth',
-        'Advanced team permissions',
-        'Audit logs & compliance tracking'
-      ],
-      limitations: [],
-      cta: 'Contact Sales',
-      popular: false,
-      color: 'from-purple-500 to-pink-600'
-    }
-  ];
-
-  const addOns = [
-    {
-      name: 'Legal Review Service',
-      price: 199,
-      description: 'Get your legal documents reviewed by qualified attorneys',
-      icon: <Shield className="w-6 h-6" />,
-      availableFor: ['Pro', 'Enterprise']
-    },
-    {
-      name: '1-on-1 Mentorship',
-      price: 299,
-      description: 'Monthly 1-hour sessions with experienced entrepreneurs',
       icon: <Users className="w-6 h-6" />,
-      availableFor: ['Pro', 'Enterprise']
+      title: "Community Support",
+      description: "Join a thriving community of entrepreneurs and get feedback on your ideas."
     },
     {
-      name: 'Custom AI Training',
-      price: 499,
-      description: 'Train AI models on your specific industry and preferences',
-      icon: <Brain className="w-6 h-6" />,
-      availableFor: ['Enterprise']
-    },
-    {
-      name: 'Priority Support',
-      price: 49,
-      description: 'Get support responses within 2 hours, 24/7',
-      icon: <Headphones className="w-6 h-6" />,
-      availableFor: ['Pro', 'Enterprise']
+      icon: <Shield className="w-6 h-6" />,
+      title: "Expert Guidance",
+      description: "Get access to mentors and industry experts who can help you succeed."
     }
   ];
 
   const faqs = [
     {
-      question: 'Can I change plans anytime?',
-      answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we\'ll prorate any billing differences.'
+      question: "What's included in the free trial?",
+      answer: "The 14-day free trial includes full access to all features of your chosen plan. No credit card required to start."
     },
     {
-      question: 'What happens to my data if I cancel?',
-      answer: 'Your data remains accessible for 30 days after cancellation. You can export all your generated ideas and purchased templates during this period.'
+      question: "Can I change plans later?",
+      answer: "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle."
     },
     {
-      question: 'Do you offer refunds?',
-      answer: 'We offer a 30-day money-back guarantee for all paid plans. If you\'re not satisfied, contact our support team for a full refund.'
+      question: "What payment methods do you accept?",
+      answer: "We accept all major credit cards, PayPal, and bank transfers for annual plans."
     },
     {
-      question: 'Is there a free trial for paid plans?',
-      answer: 'Yes! Pro and Enterprise plans come with a 14-day free trial. No credit card required to start your trial.'
+      question: "Is there a refund policy?",
+      answer: "Yes, we offer a 30-day money-back guarantee if you're not satisfied with our service."
     },
     {
-      question: 'How does team billing work?',
-      answer: 'Pro plans include up to 3 team members. Enterprise plans include unlimited team members. Additional Pro users can be added for $10/month each.'
-    },
-    {
-      question: 'Can I use StartupLaunch for client work?',
-      answer: 'Yes! Pro and Enterprise plans include commercial usage rights. Enterprise plans also offer white-label options.'
+      question: "Do you offer discounts for startups?",
+      answer: "Yes, we offer special pricing for early-stage startups and educational institutions. Contact our sales team for details."
     }
   ];
-
-  const getPrice = (plan: typeof plans[0]) => {
-    return isAnnual ? plan.annualPrice : plan.monthlyPrice;
-  };
-
-  const getSavings = (plan: typeof plans[0]) => {
-    if (plan.monthlyPrice === 0) return 0;
-    const monthlyTotal = plan.monthlyPrice * 12;
-    const savings = monthlyTotal - plan.annualPrice;
-    return Math.round((savings / monthlyTotal) * 100);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Star className="w-4 h-4" />
-            <span>30-Day Money-Back Guarantee</span>
+            <span>Simple, Transparent Pricing</span>
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Simple, Transparent Pricing
+            Choose Your Path to Success
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Choose the plan that fits your entrepreneurial journey. Start free and upgrade 
-            as you grow your startup empire. No hidden fees, cancel anytime.
+          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Start your entrepreneurial journey with our flexible plans. All plans include a 14-day free trial 
+            and 30-day money-back guarantee.
           </p>
-          
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center space-x-4 mb-12">
-            <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isAnnual ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isAnnual ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-              Annual
-            </span>
-            {isAnnual && (
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                Save up to 17%
-              </span>
-            )}
-          </div>
         </div>
       </section>
 
-      {/* Pricing Cards */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {plans.map((plan, index) => (
-              <div
-                key={index}
-                className={`relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 ${
-                  plan.popular ? 'ring-2 ring-blue-500 scale-105' : ''
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                      Most Popular
-                    </div>
-                  </div>
-                )}
-                
-                <div className="p-8">
-                  {/* Header */}
-                  <div className="text-center mb-8">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${plan.color} rounded-xl flex items-center justify-center text-white mx-auto mb-4`}>
-                      {plan.icon}
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {plan.name}
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      {plan.description}
-                    </p>
-                    <div className="mb-2">
-                      <span className="text-4xl font-bold text-gray-900">
-                        ${getPrice(plan)}
-                      </span>
-                      {plan.monthlyPrice > 0 && (
-                        <span className="text-gray-600 ml-2">
-                          /{isAnnual ? 'year' : 'month'}
-                        </span>
-                      )}
-                    </div>
-                    {isAnnual && plan.monthlyPrice > 0 && (
-                      <div className="text-sm text-green-600 font-medium">
-                        Save {getSavings(plan)}% annually
-                      </div>
-                    )}
-                    {plan.monthlyPrice === 0 && (
-                      <div className="text-sm text-gray-500">
-                        Free Forever
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Features */}
-                  <div className="space-y-4 mb-8">
-                    <h4 className="font-semibold text-gray-900">What's included:</h4>
-                    <ul className="space-y-3 max-h-80 overflow-y-auto">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start">
-                          <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                          <span className="text-gray-700 text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* CTA Button */}
-                  <Link
-                    to={plan.name === 'Enterprise' ? '/contact' : `/signup?plan=${plan.name.toLowerCase()}`}
-                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2 ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span>{plan.cta}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Pricing Table Section */}
+      <section className="py-20 bg-white">
+        <PricingTable />
       </section>
 
-      {/* Add-ons Section */}
-      <section className="py-16 bg-white">
+      {/* Benefits Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Optional Add-ons
+              Everything You Need to Succeed
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Enhance your experience with these premium services available to paid plan users.
+              Our platform provides all the tools and resources you need to launch and grow your startup.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {addOns.map((addon, index) => (
-              <div key={index} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <div className="text-blue-600">
-                      {addon.icon}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{addon.name}</h3>
-                    <div className="text-2xl font-bold text-gray-900">${addon.price}</div>
+            {benefits.map((benefit, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center mb-4">
+                  <div className="text-blue-600">
+                    {benefit.icon}
                   </div>
                 </div>
-                <p className="text-gray-600 mb-3">{addon.description}</p>
-                <div className="flex flex-wrap gap-1">
-                  {addon.availableFor.map((plan) => (
-                    <span key={plan} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                      {plan}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-6">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  {faq.question}
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  {benefit.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {faq.answer}
+                <p className="text-gray-600">
+                  {benefit.description}
                 </p>
               </div>
             ))}
@@ -377,29 +109,71 @@ const PricingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-gray-600">
+              Find answers to common questions about our pricing and plans.
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors duration-200"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {faq.question}
+                </h3>
+                <p className="text-gray-600">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-gray-600 mb-6">
+              Still have questions? Our team is here to help.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+            >
+              <span>Contact Sales</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-500 to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-            Ready to Launch Your Startup?
+          <h2 className="text-3xl font-bold text-white mb-6">
+            Ready to Start Your Journey?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of entrepreneurs who've successfully launched their businesses 
-            with StartupLaunch. Start your free trial today.
+            Join thousands of successful entrepreneurs who have launched their startups with our platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/signup?plan=pro"
-              className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
+              to="/signup"
+              className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center space-x-2"
             >
-              <span>Start Pro Trial</span>
+              <span>Start Free Trial</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
-              to="/contact"
-              className="border-2 border-white text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all"
+              to="/how-it-works"
+              className="border border-white text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-colors"
             >
-              Contact Sales
+              Learn More
             </Link>
           </div>
         </div>

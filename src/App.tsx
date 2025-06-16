@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { OnboardingProvider } from './contexts/OnboardingContext';
+import { UserProvider } from './contexts/UserContext';
 import { HomePage } from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -230,7 +231,9 @@ function App() {
   return (
     <ErrorBoundary>
       <OnboardingProvider>
-        <AppContent />
+        <UserProvider>
+          <AppContent />
+        </UserProvider>
       </OnboardingProvider>
     </ErrorBoundary>
   );
