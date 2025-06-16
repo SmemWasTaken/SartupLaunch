@@ -1,12 +1,11 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm run build"
   publish = "dist"
-  base = "/"
+  base = "."
 
 [build.environment]
-  NODE_VERSION = "18.20.0"
-  NPM_VERSION = "10.5.0"
-  NPM_FLAGS = "--legacy-peer-deps"
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
 
 [[redirects]]
   from = "/*"
@@ -16,11 +15,11 @@
 [[headers]]
   for = "/*"
   [headers.values]
+    Content-Security-Policy = "default-src 'self' https: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;"
 
 # Environment variables for demo mode
 [context.production.environment]
