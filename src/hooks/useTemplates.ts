@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Template, CartItem } from '../types';
 import { useUser } from '@clerk/clerk-react';
 import { getMockTemplates } from '../utils/mockData';
+import { secureLocalStorage } from '../utils/security';
 
 interface UseTemplatesReturn {
   templates: Template[];
@@ -17,12 +18,20 @@ interface UseTemplatesReturn {
 export const useTemplates = (): UseTemplatesReturn => {
   const { user } = useUser();
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    // Load cart from localStorage if available
+    return secureLocalStorage.getItem<CartItem[]>('cart') || [];
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadTemplates();
   }, []);
+
+  // Persist cart to localStorage whenever it changes
+  useEffect(() => {
+    secureLocalStorage.setItem('cart', cart);
+  }, [cart]);
 
   const loadTemplates = async () => {
     setIsLoading(true);

@@ -72,4 +72,10 @@
   ```ts
   import { sendEmail } from '../lib/resend';
   await sendEmail({ to: 'user@example.com', subject: 'Welcome!', html: '<b>Hello!</b>' });
-  ``` 
+  ```
+
+## Payments (Stripe)
+- Stripe is used for payment processing.
+- Add the following to your `.env` and Netlify environment variables:
+  - `VITE_STRIPE_PUBLISHABLE_KEY`
+  - `STRIPE_SECRET_KEY` 
