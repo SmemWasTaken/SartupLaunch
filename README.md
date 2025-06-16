@@ -2,6 +2,8 @@
 
 A comprehensive platform for entrepreneurs to generate, validate, and launch startup ideas using AI.
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/your-site-id/deploy-status)](https://app.netlify.com/sites/your-site-name/deploys)
+
 ## Features
 
 ### Core Functionality
@@ -129,6 +131,63 @@ src/
 2. Write meaningful commit messages
 3. Submit a pull request for review
 4. Ensure all tests pass before merging
+
+## Deployment
+
+### Netlify Deployment
+
+This project is configured for automatic deployment on Netlify. The deployment process includes:
+
+1. **Automatic Builds**
+   - Builds are triggered on push to the main branch
+   - Preview deployments are created for pull requests
+   - Branch deployments are available for feature branches
+
+2. **Environment Configuration**
+   - Environment variables are managed through Netlify's dashboard
+   - Required variables:
+     ```env
+     VITE_API_URL=your_api_url
+     VITE_ANALYTICS_KEY=your_analytics_key
+     ```
+
+3. **Build Settings**
+   - Node.js version: 18
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+   - Build plugins: None required
+
+4. **Security Headers**
+   - Content Security Policy (CSP)
+   - X-Frame-Options
+   - X-Content-Type-Options
+   - X-XSS-Protection
+   - Referrer-Policy
+
+5. **Custom Domain**
+   - Configure your custom domain in Netlify's dashboard
+   - SSL/TLS certificates are automatically provisioned
+   - DNS records are managed through Netlify
+
+### Manual Deployment
+
+To deploy manually:
+
+1. Build the project:
+   ```bash
+   npm run build
+   ```
+
+2. Test the production build locally:
+   ```bash
+   npm run preview
+   ```
+
+3. Deploy to your hosting provider:
+   - Upload the contents of the `dist` directory
+   - Configure your server to handle client-side routing
+   - Set up environment variables
+   - Configure security headers
 
 ## Contributing
 
