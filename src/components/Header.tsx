@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Rocket, User, LogOut, ShoppingCart } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTemplates } from '../hooks/useTemplates';
 import {
   SignedIn,
   SignedOut,
@@ -13,8 +11,6 @@ import {
 
 export const Header: React.FC = () => {
   const location = useLocation();
-  const { user, isAuthenticated, signOut, isDemoMode } = useAuth();
-  const { cart } = useTemplates();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
@@ -26,14 +22,6 @@ export const Header: React.FC = () => {
 
   const isActivePath = (path: string) => {
     return location.pathname === path;
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Sign out failed:', error);
-    }
   };
 
   return (
@@ -117,43 +105,20 @@ export const Header: React.FC = () => {
               </Link>
             ))}
             
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 text-sm font-medium text-gray-700"
-                >
-                  Dashboard
-                </Link>
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsMenuOpen(false);
-                  }}
-                  className="block w-full text-left py-2 text-sm font-medium text-gray-700"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 text-sm font-medium text-gray-700"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block py-2 text-sm font-medium text-white bg-primary-600 rounded-lg text-center mt-2"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
+            <Link
+              to="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-gray-700"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/signup"
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-white bg-primary-600 rounded-lg text-center mt-2"
+            >
+              Get Started
+            </Link>
           </div>
         </div>
       )}

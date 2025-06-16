@@ -1,19 +1,19 @@
-import React, { useContext, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateUser, isLoading } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const { user, isLoaded, isSignedIn } = useUser();
+  const [name, setName] = useState(user?.fullName || '');
+  const [avatar, setAvatar] = useState(user?.imageUrl || '');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  if (isLoading) {
+  if (!isLoaded) {
     return <div className="text-center py-12">Loading...</div>;
   }
 
-  if (!user) {
+  if (!isSignedIn) {
     return <div className="text-center py-12">You must be logged in to view your profile.</div>;
   }
 
@@ -34,7 +34,7 @@ const ProfilePage: React.FC = () => {
     setSuccess('');
     setError('');
     try {
-      await updateUser({ name, avatar });
+      await user.update({ fullName: name });
       setSuccess('Profile updated!');
     } catch (err: any) {
       setError(err.message || 'Failed to update profile');
@@ -75,7 +75,7 @@ const ProfilePage: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
             type="email"
-            value={user.email}
+            value={user.primaryEmailAddress?.emailAddress || ''}
             disabled
             className="w-full border border-gray-200 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
           />

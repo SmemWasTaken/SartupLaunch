@@ -14,7 +14,7 @@ import {
   Target,
   Play
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { useIdeas } from '../hooks/useIdeas';
 import { useTemplates } from '../hooks/useTemplates';
 import { useOnboarding } from '../contexts/OnboardingContext';
@@ -23,10 +23,14 @@ import OnboardingChecklist from '../components/OnboardingChecklist';
 import { OnboardingTour } from '../components/OnboardingTour';
 
 export const DashboardPage: React.FC = () => {
-  const { user, isDemoMode } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
   const { ideas, isLoading: ideasLoading } = useIdeas();
   const { templates } = useTemplates();
   const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
+
+  if (!isLoaded) {
+    return <LoadingSpinner size="lg" text="Loading your dashboard..." />;
+  }
 
   const recentIdeas = ideas.slice(0, 3);
   const favoriteIdeas = ideas.filter(idea => idea.isFavorite);
@@ -107,18 +111,12 @@ export const DashboardPage: React.FC = () => {
       <div id="dashboard-header" className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.name}!
+            Welcome back, {user?.fullName || user?.username || 'User'}!
           </h1>
           <p className="text-gray-600 mt-1">
             Here's what's happening with your startup journey
-            {isDemoMode && (
-              <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                Demo Mode
-              </span>
-            )}
           </p>
         </div>
-        
         <div className="flex items-center space-x-4">
           <button
             onClick={handleTourClick}

@@ -30,4 +30,36 @@
 ## Development Notes
 - All protected routes use the `ProtectedRoute` component.
 - To add more admin features, update `src/components/AdminDashboard.tsx`.
-- For questions or improvements, see the README or contact the project maintainer. 
+- For questions or improvements, see the README or contact the project maintainer.
+
+# Deployment & Auth Notes (Updated)
+
+## Authentication
+- The app now uses **Clerk** for all authentication (sign in, sign up, user context, protected routes).
+- All legacy custom auth and demo mode logic has been removed.
+
+## Database
+- Uses **Supabase** for all data storage (ideas, profiles, templates).
+- Live Supabase project is configured via `.env`.
+
+## AI Integration
+- Uses **OpenAI GPT** for idea generation.
+- API key is set in `.env` as `VITE_OPENAI_API_KEY`.
+
+## Environment Variables
+- `.env` (for local dev) and Netlify environment settings (for production) must include:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `VITE_OPENAI_API_KEY`
+- `.env.example` provides placeholders for onboarding new developers.
+
+## Deployment Checklist
+- All environment variables are set in Netlify.
+- No custom auth code remains; only Clerk is used.
+- All protected routes use Clerk's user context.
+- Supabase and OpenAI keys are live.
+
+## Last Updated
+- Clerk-only auth, live Supabase, and OpenAI integration completed.
+- See GitHub commit history for details. 

@@ -3,11 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { AuthProvider } from './contexts/AuthContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
 import { HomePage } from './pages/HomePage';
-import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import { CartPage } from './pages/CartPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { IdeaGenerationPage } from './pages/IdeaGenerationPage';
@@ -28,29 +27,10 @@ import SuccessStoriesPage from './pages/SuccessStoriesPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import APIDocsPage from './pages/APIDocsPage';
 import ProfilePage from './pages/ProfilePage';
-import { useAuth } from './contexts/AuthContext';
 import { LoadingPage } from './components/LoadingSpinner';
 import AdminDashboard from './components/AdminDashboard';
 import AllIdeasPage from './pages/AllIdeasPage';
-
-// Protected Route Component
-const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingPage message="Checking authentication..." />;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (adminOnly && !isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
-};
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // App Layout Component
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -246,11 +226,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <OnboardingProvider>
-          <AppContent />
-        </OnboardingProvider>
-      </AuthProvider>
+      <OnboardingProvider>
+        <AppContent />
+      </OnboardingProvider>
     </ErrorBoundary>
   );
 }

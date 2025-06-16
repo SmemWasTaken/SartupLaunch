@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, X, CreditCard, ArrowLeft, Check, Shield, Clock, Star } from 'lucide-react';
 import { useTemplates } from '../hooks/useTemplates';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const CartPage: React.FC = () => {
   const { cart, removeFromCart, clearCart, getTotalPrice, purchaseTemplates } = useTemplates();
-  const { isAuthenticated } = useAuth();
+  const { user } = useUser();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPurchaseComplete, setIsPurchaseComplete] = useState(false);
 
@@ -16,10 +16,6 @@ export const CartPage: React.FC = () => {
   };
 
   const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      return;
-    }
-
     setIsProcessing(true);
     try {
       await purchaseTemplates();
@@ -168,7 +164,7 @@ export const CartPage: React.FC = () => {
             
             <button
               onClick={handleCheckout}
-              disabled={isProcessing || !isAuthenticated}
+              disabled={isProcessing}
               className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isProcessing ? (
@@ -180,14 +176,6 @@ export const CartPage: React.FC = () => {
                 </>
               )}
             </button>
-            
-            {!isAuthenticated && (
-              <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
-                  Please <Link to="/login" className="font-medium underline">sign in</Link> to complete your purchase.
-                </p>
-              </div>
-            )}
             
             <div className="mt-6 space-y-3">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -205,3 +193,5 @@ export const CartPage: React.FC = () => {
     </div>
   );
 };
+
+

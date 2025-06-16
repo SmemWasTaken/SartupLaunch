@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StartupIdea, IdeaGeneratorParams } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { supabase } from '../lib/supabase';
 import { OpenAIService } from '../lib/openai';
@@ -18,7 +18,7 @@ interface UseIdeasReturn {
 }
 
 export const useIdeas = (): UseIdeasReturn => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useUser();
   const { completeStep } = useOnboarding();
   const [ideas, setIdeas] = useState<StartupIdea[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +29,7 @@ export const useIdeas = (): UseIdeasReturn => {
     if (user) {
       loadIdeas();
     }
-  }, [user, isDemoMode]);
+  }, [user]);
 
   useEffect(() => {
     // Load API key from environment or localStorage
@@ -48,37 +48,30 @@ export const useIdeas = (): UseIdeasReturn => {
 
     setIsLoading(true);
     try {
-      if (isDemoMode) {
-        const demoIdeas = localStorage.getItem('demo_ideas');
-        if (demoIdeas) {
-          setIdeas(JSON.parse(demoIdeas));
-        }
-      } else {
-        const { data, error } = await supabase
-          .from('startup_ideas')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('startup_ideas')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const formattedIdeas: StartupIdea[] = data.map(item => ({
-          id: item.id,
-          userId: item.user_id,
-          title: item.title,
-          description: item.description,
-          category: item.category,
-          difficulty: item.difficulty as 'Easy' | 'Medium' | 'Hard',
-          timeToLaunch: item.time_to_launch,
-          revenueEstimate: item.revenue_estimate,
-          marketSize: item.market_size,
-          tags: item.tags,
-          isFavorite: item.is_favorite,
-          createdAt: item.created_at,
-        }));
+      const formattedIdeas: StartupIdea[] = data.map(item => ({
+        id: item.id,
+        userId: item.user_id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        difficulty: item.difficulty as 'Easy' | 'Medium' | 'Hard',
+        timeToLaunch: item.time_to_launch,
+        revenueEstimate: item.revenue_estimate,
+        marketSize: item.market_size,
+        tags: item.tags,
+        isFavorite: item.is_favorite,
+        createdAt: item.created_at,
+      }));
 
-        setIdeas(formattedIdeas);
-      }
+      setIdeas(formattedIdeas);
     } catch (error) {
       console.error('Failed to load ideas:', error);
       setError('Failed to load ideas');
@@ -150,6 +143,59 @@ export const useIdeas = (): UseIdeasReturn => {
     };
 
     try {
+      // Check database for existing idea
+      const { data: existingDbIdea } = await supabase
+        .from('startup_ideas')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('title', ideaData.title)
+        .eq('description', ideaData.description)
+        .single();
+        
+      if (existingDbIdea) {
+        throw new Error('You have already saved this idea');
+      }
+      
+      const { error } = await supabase
+        .from('startup_ideas')
+        .insert({
+          id: newIdea.id,
+          user_id: newIdea.userId,
+          title: newIdea.title,
+          description: newIdea.description,
+          category: newIdea.category,
+          difficulty: newIdea.difficulty,
+          time_to_launch: newIdea.timeToLaunch,
+          revenue_estimate: newIdea.revenueEstimate,
+          market_size: newIdea.marketSize,
+          tags: newIdea.tags,
+          is_favorite: newIdea.isFavorite,
+        });
+
+      if (error) throw error;
+      setIdeas(prev => [newIdea, ...prev]);
+      
+      // Mark save-idea step as complete
+      completeStep('save-idea');
+    } catch (error) {
+      console.error('Failed to save idea:', error);
+      if (error instanceof Error && error.message === 'You have already saved this idea') {
+        setError('You have already saved this idea');
+      } else {
+        setError('Failed to save idea');
+      }
+      throw error;
+    }
+  };
+
+  const toggleFavorite = async (ideaId: string) => {
+    const idea = ideas.find(i => i.id === ideaId);
+    if (!idea) return;
+
+    const updatedIdea = { ...idea, isFavorite: !idea.isFavorite };
+
+    try {
+      const { error } = await supabase
       if (isDemoMode) {
         // Check for duplicates in demo mode too
         const demoIdeas = JSON.parse(localStorage.getItem('demo_ideas') || '[]');

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Template, CartItem } from '../types';
-import { useAuth } from '../contexts/AuthContext';
-import { useOnboarding } from '../contexts/OnboardingContext';
+import { useUser } from '@clerk/clerk-react';
 import { getMockTemplates } from '../utils/mockData';
 
 interface UseTemplatesReturn {
@@ -16,21 +15,14 @@ interface UseTemplatesReturn {
 }
 
 export const useTemplates = (): UseTemplatesReturn => {
-  const { user, isDemoMode } = useAuth();
-  const { completeStep } = useOnboarding();
+  const { user } = useUser();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadTemplates();
-    if (isDemoMode) {
-      const savedCart = localStorage.getItem('demo_cart');
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
-    }
-  }, [isDemoMode]);
+  }, []);
 
   const loadTemplates = async () => {
     setIsLoading(true);
@@ -40,22 +32,7 @@ export const useTemplates = (): UseTemplatesReturn => {
       
       const mockTemplates = getMockTemplates();
       
-      // Mark purchased templates for authenticated users
-      if (user && isDemoMode) {
-        const purchasedTemplates = localStorage.getItem('demo_purchased_templates');
-        if (purchasedTemplates) {
-          const purchased = JSON.parse(purchasedTemplates);
-          const templatesWithPurchaseStatus = mockTemplates.map(template => ({
-            ...template,
-            isPurchased: purchased.includes(template.id),
-          }));
-          setTemplates(templatesWithPurchaseStatus);
-        } else {
-          setTemplates(mockTemplates);
-        }
-      } else {
-        setTemplates(mockTemplates);
-      }
+      setTemplates(mockTemplates);
     } catch (error) {
       console.error('Failed to load templates:', error);
     } finally {
@@ -76,9 +53,6 @@ export const useTemplates = (): UseTemplatesReturn => {
         );
       } else {
         const newCart = [...prev, { templateId: template.id, template, quantity: 1 }];
-        if (isDemoMode) {
-          localStorage.setItem('demo_cart', JSON.stringify(newCart));
-        }
         return newCart;
       }
     });
@@ -87,18 +61,12 @@ export const useTemplates = (): UseTemplatesReturn => {
   const removeFromCart = (templateId: string) => {
     setCart(prev => {
       const newCart = prev.filter(item => item.templateId !== templateId);
-      if (isDemoMode) {
-        localStorage.setItem('demo_cart', JSON.stringify(newCart));
-      }
       return newCart;
     });
   };
 
   const clearCart = () => {
     setCart([]);
-    if (isDemoMode) {
-      localStorage.removeItem('demo_cart');
-    }
   };
 
   const getTotalPrice = () => {
@@ -112,24 +80,6 @@ export const useTemplates = (): UseTemplatesReturn => {
     try {
       // Simulate purchase process
       await new Promise(resolve => setTimeout(resolve, 1500));
-
-      if (isDemoMode) {
-        const purchasedTemplates = localStorage.getItem('demo_purchased_templates');
-        const purchased = purchasedTemplates ? JSON.parse(purchasedTemplates) : [];
-        const newPurchases = cart.map(item => item.templateId);
-        const updatedPurchased = [...purchased, ...newPurchases];
-        
-        localStorage.setItem('demo_purchased_templates', JSON.stringify(updatedPurchased));
-        
-        // Update templates to mark as purchased
-        setTemplates(prev => prev.map(template => ({
-          ...template,
-          isPurchased: updatedPurchased.includes(template.id),
-        })));
-        
-        // Mark explore-templates step as complete
-        completeStep('explore-templates');
-      }
 
       clearCart();
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { OnboardingStep } from '../types';
-import { useAuth } from './AuthContext';
+import { useUser } from '@clerk/clerk-react';
 
 interface OnboardingContextType {
   steps: OnboardingStep[];
@@ -71,33 +71,11 @@ const initialSteps: OnboardingStep[] = [
 ];
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, updateUser, isDemoMode } = useAuth();
+  const { user } = useUser();
   const [steps, setSteps] = useState<OnboardingStep[]>(initialSteps);
   const [currentStep, setCurrentStep] = useState(0);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [tourSeen, setTourSeen] = useState(false);
-
-  useEffect(() => {
-    if (isDemoMode) {
-      // Load from localStorage for demo mode
-      const savedSteps = localStorage.getItem('demo_onboarding_steps');
-      const savedTourSeen = localStorage.getItem('demo_tour_seen');
-      
-      if (savedSteps) {
-        setSteps(JSON.parse(savedSteps));
-      }
-      
-      if (savedTourSeen) {
-        setTourSeen(JSON.parse(savedTourSeen));
-      }
-    }
-  }, [isDemoMode]);
-
-  const saveProgress = (newSteps: OnboardingStep[]) => {
-    if (isDemoMode) {
-      localStorage.setItem('demo_onboarding_steps', JSON.stringify(newSteps));
-    }
-  };
 
   const showOnboarding = () => {
     setIsOnboardingOpen(true);
@@ -112,14 +90,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       step.id === stepId ? { ...step, completed: true } : step
     );
     setSteps(newSteps);
-    saveProgress(newSteps);
 
     // Check if all required steps are completed
     const requiredSteps = newSteps.filter(step => !step.optional);
     const completedRequired = requiredSteps.filter(step => step.completed);
     
     if (completedRequired.length === requiredSteps.length && user) {
-      updateUser({ onboardingCompleted: true });
+      // Update user logic
     }
   };
 
@@ -140,7 +117,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const skipOnboarding = () => {
     setIsOnboardingOpen(false);
     if (user) {
-      updateUser({ onboardingCompleted: true });
+      // Update user logic
     }
   };
 
@@ -166,10 +143,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const markTourSeen = async (): Promise<void> => {
     setTourSeen(true);
     completeStep('take-tour');
-    
-    if (isDemoMode) {
-      localStorage.setItem('demo_tour_seen', 'true');
-    }
   };
 
   const completedSteps = steps.filter(step => step.completed).length;

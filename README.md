@@ -5,7 +5,7 @@ A modern React application that helps entrepreneurs generate startup ideas using
 ## Features
 
 - 🤖 AI-powered startup idea generation
-- 🔐 Supabase authentication with Google & GitHub OAuth
+- 🔐 Clerk authentication (email, Google, GitHub, etc.)
 - 📱 Responsive design with mobile-first approach
 - 🛡️ Security hardening with CSP, XSS protection, and input sanitization
 - 🧪 Comprehensive testing with Vitest and Cypress
@@ -17,7 +17,7 @@ A modern React application that helps entrepreneurs generate startup ideas using
 
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS
-- **Authentication**: Supabase Auth with Google & GitHub OAuth
+- **Authentication**: Clerk (email, Google, GitHub, etc.)
 - **Database**: Supabase (PostgreSQL)
 - **Testing**: Vitest (unit), Cypress (e2e)
 - **Icons**: Lucide React
@@ -58,6 +58,9 @@ cp .env.example .env
 VITE_SUPABASE_URL=your-supabase-project-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+
+# OpenAI API Key
+VITE_OPENAI_API_KEY=your-openai-api-key
 ```
 
 ### Supabase Setup
@@ -186,7 +189,7 @@ Both configurations include:
 - SPA routing support
 - Asset optimization
 
-Make sure to add your Supabase environment variables to your deployment platform's environment settings.
+Make sure to add your Supabase and OpenAI environment variables to your deployment platform's environment settings.
 
 ### Project Structure
 
@@ -216,3 +219,9 @@ supabase/
 ### License
 
 This project is licensed under the MIT License.
+
+## Clerk Authentication
+This app uses Clerk for all authentication. See `/src/pages/LoginPage.tsx` and `/src/pages/SignupPage.tsx` for integration details.
+
+## Environment Variables
+See `.env.example` for all required variables. Never commit your real `.env` to version control.
