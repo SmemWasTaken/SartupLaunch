@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, User, LogOut, ShoppingCart } from 'lucide-react';
+import { Menu, X, Rocket } from 'lucide-react';
 import {
   SignedIn,
   SignedOut,

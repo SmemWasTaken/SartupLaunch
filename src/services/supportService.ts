@@ -4,8 +4,6 @@ import {
   PostComment,
   PostReaction,
   SupportTicket,
-  TicketMessage,
-  TicketAttachment,
   SupportAgent,
   KnowledgeBaseArticle,
   TicketStatus,
@@ -88,25 +86,6 @@ export class SupportService {
     delete posts[id];
     this.savePosts(posts);
     return true;
-  }
-
-  async addComment(postId: string, comment: Omit<PostComment, 'id' | 'createdAt' | 'updatedAt' | 'reactions' | 'userReactions'>): Promise<PostComment | null> {
-    const posts = this.getPosts();
-    if (!posts[postId]) return null;
-
-    const newComment: PostComment = {
-      ...comment,
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      reactions: { like: 0, helpful: 0, insightful: 0 },
-      userReactions: {},
-    };
-
-    posts[postId].comments.push(newComment);
-    posts[postId].updatedAt = new Date().toISOString();
-    this.savePosts(posts);
-    return newComment;
   }
 
   async reactToPost(postId: string, userId: string, reaction: PostReaction): Promise<CommunityPost | null> {
@@ -244,8 +223,8 @@ export class SupportService {
     return this.updateTicket(id, { priority });
   }
 
-  async assignTicket(id: string, agentId: string, agentName: string): Promise<SupportTicket | null> {
-    return this.updateTicket(id, { assignedTo: agentId, assignedToName: agentName });
+  async assignTicket(id: string, agentId: string): Promise<SupportTicket | null> {
+    return this.updateTicket(id, { assignedTo: agentId });
   }
 
   // Support Agents

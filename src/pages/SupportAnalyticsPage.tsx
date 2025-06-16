@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { usePlanFeatures } from '@/hooks/usePlanFeatures';
 import { SupportAnalyticsDashboard } from '@/components/SupportAnalyticsDashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 
 export function SupportAnalyticsPage() {
   const navigate = useNavigate();

@@ -28,8 +28,6 @@ export default function CommunityPage() {
     isLoading,
     error,
     createPost,
-    updatePost,
-    deletePost,
     addComment,
     reactToPost,
   } = useSupport();

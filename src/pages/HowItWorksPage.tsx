@@ -1,27 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Lightbulb, Zap, Rocket, CheckCircle, ArrowRight, Brain, Target, TrendingUp, Users, Star, Clock } from 'lucide-react';
+import { Lightbulb, ArrowRight } from 'lucide-react';
 import HowItWorksWizard from '../components/HowItWorksWizard';
 
 const HowItWorksPage: React.FC = () => {
   const features = [
     {
-      icon: <TrendingUp className="w-6 h-6" />,
+      icon: <Lightbulb className="w-6 h-6" />,
       title: "Market-Validated Ideas",
       description: "Every idea is backed by real market data and successful business patterns."
     },
     {
-      icon: <Users className="w-6 h-6" />,
+      icon: <ArrowRight className="w-6 h-6" />,
       title: "Community Support",
       description: "Join thousands of entrepreneurs sharing experiences and supporting each other."
     },
     {
-      icon: <Star className="w-6 h-6" />,
+      icon: <Lightbulb className="w-6 h-6" />,
       title: "Expert Guidance",
       description: "Access to business mentors and industry experts for personalized advice."
     },
     {
-      icon: <Clock className="w-6 h-6" />,
+      icon: <ArrowRight className="w-6 h-6" />,
       title: "Fast Implementation",
       description: "Launch your startup 10x faster with our proven templates and frameworks."
     }

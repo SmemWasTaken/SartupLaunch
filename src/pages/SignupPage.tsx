@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { SignUp } from "@clerk/clerk-react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
 import { Check, Crown, Rocket, Zap, Star, ArrowRight } from "lucide-react";
+import { SignUp } from "@clerk/clerk-react";
 
 export default function SignupPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState(searchParams.get('plan') || 'starter');
   const [showPlanSelection, setShowPlanSelection] = useState(true);
 

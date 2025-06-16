@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -182,7 +182,7 @@ export function SupportAnalyticsDashboard({
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {ticketCategoryData.map((entry, index) => (
+                    {ticketCategoryData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -231,7 +231,7 @@ export function SupportAnalyticsDashboard({
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {articleCategoryData.map((entry, index) => (
+                    {articleCategoryData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

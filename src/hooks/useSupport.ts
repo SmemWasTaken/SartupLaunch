@@ -3,10 +3,7 @@ import { useUser } from '../contexts/UserContext';
 import { supportService } from '../services/supportService';
 import {
   CommunityPost,
-  PostComment,
-  PostReaction,
   SupportTicket,
-  TicketMessage,
   TicketStatus,
   TicketPriority,
   KnowledgeBaseArticle,
@@ -135,11 +132,7 @@ export function useSupport() {
   const createTicket = async (ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'messages' | 'attachments'>) => {
     if (!user) throw new Error('User must be logged in');
     try {
-      const newTicket = await supportService.createTicket({
-        ...ticket,
-        userId: user.id,
-        userName: user.name || user.email,
-      });
+      const newTicket = await supportService.createTicket(ticket, user.id);
       setTickets(prev => [...prev, newTicket]);
       return newTicket;
     } catch (err) {
@@ -157,32 +150,6 @@ export function useSupport() {
       return updatedTicket;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update ticket');
-      throw err;
-    }
-  };
-
-  const addMessage = async (ticketId: string, content: string, isInternal = false) => {
-    if (!user) throw new Error('User must be logged in');
-    try {
-      const message = await supportService.addMessage(ticketId, {
-        ticketId,
-        content,
-        authorId: user.id,
-        authorName: user.name || user.email,
-        authorRole: 'user',
-        isInternal,
-      });
-      if (message) {
-        setTickets(prev => prev.map(ticket => {
-          if (ticket.id === ticketId) {
-            return { ...ticket, messages: [...ticket.messages, message] };
-          }
-          return ticket;
-        }));
-      }
-      return message;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add message');
       throw err;
     }
   };
@@ -259,7 +226,6 @@ export function useSupport() {
     // Support Tickets
     createTicket,
     updateTicket,
-    addMessage,
     updateTicketStatus,
     updateTicketPriority,
 

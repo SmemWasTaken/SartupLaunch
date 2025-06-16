@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { usePlanFeatures } from '@/hooks/usePlanFeatures';

@@ -37,7 +37,7 @@ const GENERATION_LIMITS: Record<string, number | 'unlimited'> = {
 const HowItWorksWizard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { hasFeature, currentPlan } = usePlanFeatures();
+  const { currentPlan } = usePlanFeatures();
   const { toggleFavorite, isFavorite } = useFavorites();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);

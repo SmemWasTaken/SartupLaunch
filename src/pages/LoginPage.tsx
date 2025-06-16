@@ -1,6 +1,3 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, Rocket, AlertCircle } from 'lucide-react';
 import { SignIn } from '@clerk/clerk-react';
 
 export default function LoginPage() {

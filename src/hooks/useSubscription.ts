@@ -99,7 +99,6 @@ export const useSubscription = () => {
     try {
       await user.update({
         publicMetadata: {
-          ...user.publicMetadata,
           subscriptionPlan: newPlan,
           planUpgradedAt: new Date().toISOString(),
         },

@@ -59,7 +59,7 @@ export const OnboardingTour: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
-  const { tourSeen, markTourSeen } = useOnboarding();
+  const { markTourSeen } = useOnboarding();
 
   const showTour = () => {
     setIsVisible(true);

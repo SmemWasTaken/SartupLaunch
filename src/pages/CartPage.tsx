@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, X, CreditCard, ArrowLeft, Check, Shield, Clock, Star } from 'lucide-react';
 import { useTemplates } from '../hooks/useTemplates';
-import { useUser } from '@clerk/clerk-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const CartPage: React.FC = () => {
-  const { cart, removeFromCart, clearCart, getTotalPrice, purchaseTemplates } = useTemplates();
-  const { user } = useUser();
+  const { cart, removeFromCart, getTotalPrice, purchaseTemplates } = useTemplates();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPurchaseComplete, setIsPurchaseComplete] = useState(false);
 

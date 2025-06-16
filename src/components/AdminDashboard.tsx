@@ -4,7 +4,7 @@ const GA_MEASUREMENT_ID = 'G-NF4BRVQHV4';
 
 const AdminDashboard: React.FC = () => {
   const [primaryColor, setPrimaryColor] = useState('#2563eb'); // default blue
-  const [analyticsData, setAnalyticsData] = useState({
+  const [analyticsData] = useState({
     visitors: 0,
     pageViews: 0,
     // Add more as needed

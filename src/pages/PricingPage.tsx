@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Star, Zap, Users, Shield } from 'lucide-react';
+import { ArrowRight, Star, Zap, Users, Shield } from 'lucide-react';
 import PricingTable from '../components/PricingTable';
 
 const PricingPage: React.FC = () => {

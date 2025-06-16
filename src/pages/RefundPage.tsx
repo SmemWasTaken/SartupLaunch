@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, Clock, CheckCircle, AlertCircle, CreditCard, Mail } from 'lucide-react';
+import { RefreshCw, CheckCircle, AlertCircle, CreditCard, Mail } from 'lucide-react';
 
 const RefundPage: React.FC = () => {
   const refundTimeline = [

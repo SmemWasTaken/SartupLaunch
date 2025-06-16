@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, ShoppingCart, Eye, Download, Heart, Check, X } from 'lucide-react';
+import { Search, Star, ShoppingCart, Eye, Download, Heart, Check, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Template } from '../types';
 import { useTemplates } from '../hooks/useTemplates';
-import { LoadingSpinner, LoadingCard } from './LoadingSpinner';
+import { LoadingCard } from './LoadingSpinner';
 import { trackTemplateViewed, trackTemplateAddedToCart } from '../utils/analytics';
 import Modal from './Modal';
 

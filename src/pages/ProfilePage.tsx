@@ -34,7 +34,7 @@ const ProfilePage: React.FC = () => {
     setSuccess('');
     setError('');
     try {
-      await user.update({ fullName: name });
+      await user.update({ firstName: name.split(' ')[0], lastName: name.split(' ')[1] ?? '' });
       setSuccess('Profile updated!');
     } catch (err: any) {
       setError(err.message || 'Failed to update profile');

@@ -6,7 +6,6 @@ import {
   Lightbulb, 
   Target, 
   TrendingUp, 
-  Users, 
   DollarSign,
   Rocket,
   Shield,

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Lightbulb, Zap, Clock, TrendingUp, Star, Heart, Share2, Download, Lock } from 'lucide-react';
+import { Lightbulb, Zap, Clock, TrendingUp, Heart, Share2, Download, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
 import { useIdeas } from '../hooks/useIdeas';
 import { useSubscription } from '../hooks/useSubscription';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -20,8 +19,7 @@ interface GeneratedIdea {
 }
 
 export const IdeaGenerator: React.FC = () => {
-  const { user, isSignedIn } = useUser();
-  const { generateIdeas, saveIdea, toggleFavorite, isLoading, ideas } = useIdeas();
+  const { saveIdea, toggleFavorite, isLoading, ideas } = useIdeas();
   const { plan, canGenerateIdeas, getRemainingIdeas } = useSubscription();
   const [formData, setFormData] = useState({
     interests: '',
@@ -72,25 +70,12 @@ export const IdeaGenerator: React.FC = () => {
     }
 
     // Check if user is signed in and if they can generate ideas
-    if (!isSignedIn) {
-      if (generationCount >= 2) {
-        setError('Sign in to generate more ideas');
-        return;
-      }
-    } else if (!canGenerateIdeas(generationCount)) {
+    if (!canGenerateIdeas(generationCount)) {
       setShowUpgradePrompt(true);
       return;
     }
 
     try {
-      const params = {
-        interests: formData.interests.split(',').map(s => s.trim()),
-        skills: formData.skills.split(',').map(s => s.trim()),
-        industry: formData.industry,
-        budget: formData.budget,
-        timeframe: formData.timeframe,
-      };
-
       // For demo purposes, generate mock ideas
       const mockIdeas: GeneratedIdea[] = [
         {
@@ -135,11 +120,6 @@ export const IdeaGenerator: React.FC = () => {
   };
 
   const handleSaveIdea = async (idea: GeneratedIdea) => {
-    if (!isSignedIn) {
-      setError('Please sign in to save ideas');
-      return;
-    }
-
     try {
       await saveIdea({
         title: idea.title,
@@ -187,7 +167,7 @@ export const IdeaGenerator: React.FC = () => {
     }
   };
 
-  const remainingIdeas = isSignedIn ? getRemainingIdeas(generationCount) : (2 - generationCount);
+  const remainingIdeas = canGenerateIdeas(generationCount) ? getRemainingIdeas(generationCount) : (2 - generationCount);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -214,7 +194,7 @@ export const IdeaGenerator: React.FC = () => {
           </p>
           
           {/* Usage Limits */}
-          {!isSignedIn && (
+          {!canGenerateIdeas(generationCount) && (
             <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <p className="text-amber-800 text-sm">
                 <strong>Free Preview:</strong> Generate up to 2 startup ideas without signing up. 
@@ -226,7 +206,7 @@ export const IdeaGenerator: React.FC = () => {
             </div>
           )}
           
-          {isSignedIn && plan === 'starter' && (
+          {canGenerateIdeas(generationCount) && plan === 'starter' && (
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
               <p className="text-blue-800 text-sm">
                 <strong>Starter Plan:</strong> {remainingIdeas === -1 ? 'Unlimited' : remainingIdeas} idea{remainingIdeas !== 1 ? 's' : ''} remaining this month.
@@ -336,7 +316,7 @@ export const IdeaGenerator: React.FC = () => {
             <button
               id="generate-button"
               type="submit"
-              disabled={isLoading || (!isSignedIn && generationCount >= 2) || (isSignedIn && !canGenerateIdeas(generationCount))}
+              disabled={isLoading || (!canGenerateIdeas(generationCount) && generationCount >= 2)}
               className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center space-x-2 mx-auto"
             >
               {isLoading ? (
@@ -348,14 +328,6 @@ export const IdeaGenerator: React.FC = () => {
                 </>
               )}
             </button>
-            
-            {!isSignedIn && generationCount >= 2 && (
-              <p className="text-sm text-gray-600 mt-2">
-                <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
-                  Sign up for free
-                </Link> to generate unlimited ideas
-              </p>
-            )}
           </div>
         </form>
       </div>
@@ -420,7 +392,7 @@ export const IdeaGenerator: React.FC = () => {
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center space-x-2">
-                        {isSignedIn && (
+                        {canGenerateIdeas(generationCount) && (
                           <button
                             aria-label={isFavorite ? 'Unfavorite' : 'Favorite'}
                             className="p-2 rounded-full focus:outline-none"
@@ -446,7 +418,7 @@ export const IdeaGenerator: React.FC = () => {
                         </button>
                       </div>
 
-                      {isSignedIn ? (
+                      {canGenerateIdeas(generationCount) ? (
                         <button
                           id="claim-button"
                           onClick={() => handleSaveIdea(idea)}

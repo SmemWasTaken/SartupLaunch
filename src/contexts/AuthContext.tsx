@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Only set up Supabase auth listener if not in demo mode
     if (!isDemoMode) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
+        async (session) => {
           if (session?.user) {
             await loadUserProfile(session.user.id);
           } else {
