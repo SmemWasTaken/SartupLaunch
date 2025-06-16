@@ -1,11 +1,12 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
   base = "."
 
 [build.environment]
-  NODE_VERSION = "18"
-  NPM_VERSION = "9"
+  NODE_VERSION = "18.20.0"
+  NPM_VERSION = "9.9.4"
 
 [[redirects]]
   from = "/*"
@@ -21,7 +22,17 @@
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
 
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["openai"]
+
+[functions.environment]
+  OPENAI_API_KEY = ""
+
 # Environment variables for demo mode
 [context.production.environment]
-  VITE_SUPABASE_URL = "https://demo.supabase.co"
-  VITE_SUPABASE_ANON_KEY = "demo-key"
+  VITE_CLERK_PUBLISHABLE_KEY = ""
+  VITE_SUPABASE_URL = ""
+  VITE_SUPABASE_ANON_KEY = ""
+  VITE_STRIPE_PUBLISHABLE_KEY = ""
+  OPENAI_API_KEY = ""

@@ -3,7 +3,7 @@ import { StartupIdea, IdeaGeneratorParams } from '../types';
 import { useUser } from '@clerk/clerk-react';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { supabase } from '../lib/supabase';
-import { OpenAIService } from '../lib/openai';
+import { AIService } from '../services/aiService';
 
 interface UseIdeasReturn {
   ideas: StartupIdea[];
@@ -14,7 +14,6 @@ interface UseIdeasReturn {
   deleteIdea: (ideaId: string) => Promise<void>;
   refresh: () => Promise<void>;
   error: string | null;
-  setApiKey: (apiKey: string) => void;
 }
 
 export const useIdeas = (): UseIdeasReturn => {
@@ -23,25 +22,12 @@ export const useIdeas = (): UseIdeasReturn => {
   const [ideas, setIdeas] = useState<StartupIdea[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string>('');
 
   useEffect(() => {
     if (user) {
       loadIdeas();
     }
   }, [user]);
-
-  useEffect(() => {
-    // Load API key from environment or localStorage
-    const envApiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    
-    if (envApiKey) {
-      setApiKey(envApiKey);
-    } else if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
 
   const loadIdeas = async () => {
     if (!user) return;
@@ -83,14 +69,10 @@ export const useIdeas = (): UseIdeasReturn => {
   const generateIdeas = async (params: IdeaGeneratorParams): Promise<StartupIdea[]> => {
     if (!user) throw new Error('User not authenticated');
     
-    if (!apiKey) {
-      throw new Error('OpenAI API key is required. Please configure your API key in settings.');
-    }
-
     setIsLoading(true);
     try {
-      const openAI = new OpenAIService(import.meta.env.VITE_OPENAI_API_KEY || "dummy_key");
-      const generatedIdeas = await openAI.generateStartupIdeas(params);
+      const aiService = AIService.getInstance();
+      const generatedIdeas = await aiService.generateIdeas(params, user.id);
 
       const newIdeas: StartupIdea[] = generatedIdeas.map(idea => ({
         ...idea,
@@ -98,6 +80,9 @@ export const useIdeas = (): UseIdeasReturn => {
         userId: user.id,
         createdAt: new Date().toISOString(),
         isFavorite: false,
+        category: idea.category || 'General',
+        revenueEstimate: idea.revenueEstimate || '$10K-$50K/year',
+        tags: idea.tags || ['startup', 'business'],
       }));
 
       // Mark generate-idea step as complete
@@ -111,15 +96,6 @@ export const useIdeas = (): UseIdeasReturn => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSetApiKey = (newApiKey: string) => {
-    setApiKey(newApiKey);
-    // Only save to localStorage if not using environment variable
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      localStorage.setItem('openai_api_key', newApiKey);
-    }
-    setError(null);
   };
 
   const saveIdea = async (ideaData: Omit<StartupIdea, 'id' | 'userId' | 'createdAt'>) => {
@@ -238,6 +214,5 @@ export const useIdeas = (): UseIdeasReturn => {
     deleteIdea,
     refresh,
     error,
-    setApiKey: handleSetApiKey,
   };
 };
