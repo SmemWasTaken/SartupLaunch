@@ -12,22 +12,33 @@ import {
   Download,
   BarChart3,
   Target,
-  Play
+  Play,
+  Crown,
+  Users,
+  Zap,
+  Shield,
+  Globe,
+  Settings,
+  Infinity
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useIdeas } from '../hooks/useIdeas';
 import { useTemplates } from '../hooks/useTemplates';
 import { useOnboarding } from '../contexts/OnboardingContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { OnboardingTour } from '../components/OnboardingTour';
+import { UpgradePrompt } from '../components/UpgradePrompt';
 
 export const DashboardPage: React.FC = () => {
   const { user, isLoaded, isSignedIn } = useUser();
   const { ideas, isLoading: ideasLoading, toggleFavorite } = useIdeas();
   const { templates } = useTemplates();
   const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
+  const { plan, features, hasFeature } = useSubscription();
   const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const navigate = useNavigate();
 
   if (!isLoaded) {
@@ -69,33 +80,89 @@ export const DashboardPage: React.FC = () => {
     },
   ];
 
-  const quickActions = [
-    {
-      title: 'Generate New Ideas',
-      description: 'Create personalized startup ideas with AI',
-      icon: Lightbulb,
-      href: '/dashboard/generate',
-      color: 'bg-primary-600 hover:bg-primary-700',
-    },
-    {
-      title: 'Browse Templates',
-      description: 'Explore professional business templates',
-      icon: ShoppingBag,
-      href: '/templates',
-      color: 'bg-accent-600 hover:bg-accent-700',
-    },
-    {
-      title: 'View Analytics',
-      description: 'Track your startup progress',
-      icon: BarChart3,
-      href: '/dashboard/analytics',
-      color: 'bg-green-600 hover:bg-green-700',
-    },
-  ];
+  const getQuickActions = () => {
+    const baseActions = [
+      {
+        title: 'Generate New Ideas',
+        description: 'Create personalized startup ideas with AI',
+        icon: Lightbulb,
+        href: '/dashboard/generate',
+        color: 'bg-primary-600 hover:bg-primary-700',
+        available: true,
+      },
+      {
+        title: 'Browse Templates',
+        description: 'Explore professional business templates',
+        icon: ShoppingBag,
+        href: '/templates',
+        color: 'bg-accent-600 hover:bg-accent-700',
+        available: true,
+      },
+    ];
+
+    if (hasFeature('advancedAnalytics')) {
+      baseActions.push({
+        title: 'View Analytics',
+        description: 'Track your startup progress',
+        icon: BarChart3,
+        href: '/dashboard/analytics',
+        color: 'bg-green-600 hover:bg-green-700',
+        available: true,
+      });
+    }
+
+    if (hasFeature('teamMembers') && features.teamMembers > 1) {
+      baseActions.push({
+        title: 'Team Management',
+        description: 'Manage your team members',
+        icon: Users,
+        href: '/dashboard/team',
+        color: 'bg-purple-600 hover:bg-purple-700',
+        available: true,
+      });
+    }
+
+    if (hasFeature('apiAccess')) {
+      baseActions.push({
+        title: 'API Access',
+        description: 'Integrate with your tools',
+        icon: Settings,
+        href: '/dashboard/api',
+        color: 'bg-gray-600 hover:bg-gray-700',
+        available: true,
+      });
+    }
+
+    return baseActions;
+  };
+
+  const quickActions = getQuickActions();
 
   const handleTourClick = () => {
     if ((window as any).showDashboardTour) {
       (window as any).showDashboardTour();
+    }
+  };
+
+  const getPlanIcon = () => {
+    switch (plan) {
+      case 'pro':
+        return <Crown className="w-5 h-5" />;
+      case 'enterprise':
+        return <Shield className="w-5 h-5" />;
+      default:
+        return <Zap className="w-5 h-5" />;
+    }
+  };
+
+  const getPlanColor = () => {
+    switch (plan) {
+      case 'pro':
+        return 'from-blue-500 to-purple-600';
+      case 'enterprise':
+        return 'from-purple-500 to-pink-600';
+      default:
+        return 'from-gray-500 to-gray-600';
     }
   };
 
@@ -112,10 +179,16 @@ export const DashboardPage: React.FC = () => {
       {/* Header */}
       <div id="dashboard-header" className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.fullName || user?.username || 'User'}!
-          </h1>
-          <p className="text-gray-600 mt-1">
+          <div className="flex items-center space-x-3 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back, {user?.fullName || user?.username || 'User'}!
+            </h1>
+            <div className={`inline-flex items-center space-x-2 bg-gradient-to-r ${getPlanColor()} text-white px-3 py-1 rounded-full text-sm font-medium`}>
+              {getPlanIcon()}
+              <span>{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
+            </div>
+          </div>
+          <p className="text-gray-600">
             Here's what's happening with your startup journey
           </p>
         </div>
@@ -136,6 +209,58 @@ export const DashboardPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Plan Benefits Banner */}
+      {plan !== 'starter' && (
+        <div className={`bg-gradient-to-r ${getPlanColor()} rounded-2xl p-6 text-white`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">
+                {plan === 'pro' ? 'Pro Plan Benefits' : 'Enterprise Plan Benefits'}
+              </h3>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Infinity className="w-4 h-4" />
+                  <span>Unlimited Ideas</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>{features.templatesAccess === 'all' ? 'All Templates' : 'Premium Templates'}</span>
+                </div>
+                {hasFeature('teamMembers') && features.teamMembers > 1 && (
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4" />
+                    <span>{features.teamMembers === -1 ? 'Unlimited Team' : `${features.teamMembers} Team Members`}</span>
+                  </div>
+                )}
+                {hasFeature('apiAccess') && (
+                  <div className="flex items-center space-x-2">
+                    <Globe className="w-4 h-4" />
+                    <span>API Access</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {plan === 'starter' && (
+              <Link
+                to="/pricing"
+                className="bg-white text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
+              >
+                Upgrade
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Prompt for Starter Users */}
+      {plan === 'starter' && showUpgradePrompt && (
+        <UpgradePrompt
+          currentPlan={plan}
+          feature="Advanced Features"
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
 
       {/* Stats Grid */}
       <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -178,7 +303,7 @@ export const DashboardPage: React.FC = () => {
       {/* Quick Actions */}
       <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {quickActions.map((action, index) => (
             <Link
               key={index}

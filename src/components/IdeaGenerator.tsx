@@ -3,7 +3,9 @@ import { Lightbulb, Zap, Clock, TrendingUp, Star, Heart, Share2, Download, Lock 
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useIdeas } from '../hooks/useIdeas';
+import { useSubscription } from '../hooks/useSubscription';
 import { LoadingSpinner } from './LoadingSpinner';
+import { UpgradePrompt } from './UpgradePrompt';
 import { trackIdeaGenerated } from '../utils/analytics';
 
 interface GeneratedIdea {
@@ -20,6 +22,7 @@ interface GeneratedIdea {
 export const IdeaGenerator: React.FC = () => {
   const { user, isSignedIn } = useUser();
   const { generateIdeas, saveIdea, toggleFavorite, isLoading, ideas } = useIdeas();
+  const { plan, canGenerateIdeas, getRemainingIdeas } = useSubscription();
   const [formData, setFormData] = useState({
     interests: '',
     skills: '',
@@ -32,6 +35,7 @@ export const IdeaGenerator: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [generationCount, setGenerationCount] = useState(0);
   const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const industries = [
     'Any', 'Technology', 'Healthcare', 'Education', 'Finance', 'E-commerce',
@@ -64,6 +68,17 @@ export const IdeaGenerator: React.FC = () => {
 
     if (!formData.skills.trim()) {
       setError('Please describe your skills');
+      return;
+    }
+
+    // Check if user is signed in and if they can generate ideas
+    if (!isSignedIn) {
+      if (generationCount >= 2) {
+        setError('Sign in to generate more ideas');
+        return;
+      }
+    } else if (!canGenerateIdeas(generationCount)) {
+      setShowUpgradePrompt(true);
       return;
     }
 
@@ -102,6 +117,7 @@ export const IdeaGenerator: React.FC = () => {
 
       setGeneratedIdeas(mockIdeas);
       setShowResults(true);
+      setGenerationCount(prev => prev + 1);
       
       // Track analytics
       trackIdeaGenerated(formData.industry, 'AI');
@@ -119,6 +135,11 @@ export const IdeaGenerator: React.FC = () => {
   };
 
   const handleSaveIdea = async (idea: GeneratedIdea) => {
+    if (!isSignedIn) {
+      setError('Please sign in to save ideas');
+      return;
+    }
+
     try {
       await saveIdea({
         title: idea.title,
@@ -142,7 +163,7 @@ export const IdeaGenerator: React.FC = () => {
         document.body.removeChild(successMessage);
       }, 3000);
     } catch (err) {
-      if (err instanceof Error && err.message ===  'You have already saved this idea') {
+      if (err instanceof Error && err.message === 'You have already saved this idea') {
         const errorMessage = document.createElement('div');
         errorMessage.className = 'fixed top-4 right-4 bg-orange-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         errorMessage.textContent = 'You have already saved this idea';
@@ -166,8 +187,19 @@ export const IdeaGenerator: React.FC = () => {
     }
   };
 
+  const remainingIdeas = isSignedIn ? getRemainingIdeas(generationCount) : (2 - generationCount);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* Upgrade Prompt */}
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          currentPlan={plan}
+          feature="Unlimited Idea Generation"
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
+
       {/* Form Section */}
       <div id="idea-generator" className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
         <div className="text-center mb-8">
@@ -180,6 +212,30 @@ export const IdeaGenerator: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto">
             Tell us about your interests, skills, and goals. Our AI will generate personalized startup ideas with detailed analysis and revenue projections.
           </p>
+          
+          {/* Usage Limits */}
+          {!isSignedIn && (
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-amber-800 text-sm">
+                <strong>Free Preview:</strong> Generate up to 2 startup ideas without signing up. 
+                <Link to="/signup" className="text-amber-700 underline ml-1">Sign up</Link> for unlimited ideas.
+              </p>
+              <p className="text-amber-600 text-xs mt-1">
+                {remainingIdeas} idea{remainingIdeas !== 1 ? 's' : ''} remaining
+              </p>
+            </div>
+          )}
+          
+          {isSignedIn && plan === 'starter' && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <p className="text-blue-800 text-sm">
+                <strong>Starter Plan:</strong> {remainingIdeas === -1 ? 'Unlimited' : remainingIdeas} idea{remainingIdeas !== 1 ? 's' : ''} remaining this month.
+                {remainingIdeas !== -1 && remainingIdeas <= 0 && (
+                  <Link to="/pricing" className="text-blue-700 underline ml-1">Upgrade to Pro</Link>
+                )}
+              </p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -280,7 +336,7 @@ export const IdeaGenerator: React.FC = () => {
             <button
               id="generate-button"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || (!isSignedIn && generationCount >= 2) || (isSignedIn && !canGenerateIdeas(generationCount))}
               className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center space-x-2 mx-auto"
             >
               {isLoading ? (
@@ -292,6 +348,14 @@ export const IdeaGenerator: React.FC = () => {
                 </>
               )}
             </button>
+            
+            {!isSignedIn && generationCount >= 2 && (
+              <p className="text-sm text-gray-600 mt-2">
+                <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+                  Sign up for free
+                </Link> to generate unlimited ideas
+              </p>
+            )}
           </div>
         </form>
       </div>
@@ -310,7 +374,6 @@ export const IdeaGenerator: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {generatedIdeas.map((idea, index) => {
-              // Check if this idea is already saved
               const savedIdea = ideas.find(i => i.title === idea.title && i.description === idea.description);
               const isFavorite = savedIdea?.isFavorite;
               return (
@@ -383,13 +446,23 @@ export const IdeaGenerator: React.FC = () => {
                         </button>
                       </div>
 
-                      <button
-                        id="claim-button"
-                        onClick={() => handleSaveIdea(idea)}
-                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                      >
-                        Save Idea
-                      </button>
+                      {isSignedIn ? (
+                        <button
+                          id="claim-button"
+                          onClick={() => handleSaveIdea(idea)}
+                          className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                        >
+                          Save Idea
+                        </button>
+                      ) : (
+                        <Link
+                          to="/signup"
+                          className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 inline-flex items-center space-x-2"
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span>Sign Up to Save</span>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

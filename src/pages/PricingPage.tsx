@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Zap, Crown, Rocket, Star, ArrowRight, Users, Shield, Headphones } from 'lucide-react';
+import { Check, Zap, Crown, Rocket, Star, ArrowRight, Users, Shield, Headphones, Infinity, BarChart3, Globe, Brain, Sparkles } from 'lucide-react';
 
 const PricingPage: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -13,17 +13,21 @@ const PricingPage: React.FC = () => {
       annualPrice: 0,
       description: 'Perfect for exploring startup ideas and getting started',
       features: [
-        '3 AI-generated startup ideas per month',
-        'Basic business concept templates',
+        '2 AI-generated startup ideas per month',
+        'Basic business concept templates (3)',
         'Community forum access',
-        'Email support (48h response)',
+        'Email support (72h response)',
         'Basic market analysis',
-        'Idea favoriting and saving'
+        'Idea favoriting and saving',
+        'Access to startup guide',
+        'Basic business plan template'
       ],
       limitations: [
         'Limited template access',
-        'No premium features',
-        'Community support only'
+        'No premium AI features',
+        'Community support only',
+        'No advanced analytics',
+        'No priority support'
       ],
       cta: 'Get Started Free',
       popular: false,
@@ -38,16 +42,29 @@ const PricingPage: React.FC = () => {
       features: [
         'Unlimited AI-generated startup ideas',
         'Access to all premium templates (50+)',
-        'Legal document bundles',
-        'Advanced business plan generator',
+        'Advanced AI business plan generator',
+        'Legal document bundles (contracts, terms, privacy)',
+        'Financial planning tools & models',
         'Marketing automation setup guides',
-        'Financial planning tools',
         'Priority email support (24h response)',
         'Video tutorials & masterclasses',
-        'Market trend analysis',
+        'Advanced market trend analysis',
         'Competitor research tools',
         'Custom branding templates',
-        'Export to multiple formats'
+        'Export to multiple formats (PDF, Word, Excel)',
+        'Business model canvas generator',
+        'Pitch deck templates (10+ designs)',
+        'Financial projection calculator',
+        'Customer persona builder',
+        'SWOT analysis tools',
+        'Go-to-market strategy templates',
+        'Social media content calendar',
+        'Email marketing templates',
+        'SEO keyword research tools',
+        'Analytics dashboard',
+        'Team collaboration (up to 3 users)',
+        'Version history & backups',
+        'Mobile app access'
       ],
       limitations: [],
       cta: 'Start Pro Trial',
@@ -62,18 +79,35 @@ const PricingPage: React.FC = () => {
       description: 'For teams, agencies, and scaling businesses',
       features: [
         'Everything in Pro',
-        'Team collaboration tools (up to 10 users)',
-        'White-label solutions',
+        'Unlimited team collaboration',
+        'White-label solutions & custom branding',
         'API access for integrations',
-        'Custom template creation',
+        'Custom template creation & modification',
         'Dedicated account manager',
         'Phone support (4h response)',
-        'Custom integrations',
+        'Custom AI model training',
         'Advanced analytics dashboard',
         'Multi-brand management',
         'Priority feature requests',
-        'Onboarding consultation',
-        'Monthly strategy calls'
+        'Onboarding consultation (2 hours)',
+        'Monthly strategy calls (1 hour)',
+        'Custom integrations (Zapier, Slack, etc.)',
+        'Advanced security & compliance',
+        'Single Sign-On (SSO)',
+        'Custom workflows & automation',
+        'Data export & migration tools',
+        'Advanced reporting & insights',
+        'Custom domain for sharing',
+        'Enterprise-grade support SLA',
+        'Training sessions for teams',
+        'Custom legal document review',
+        'Investor pitch preparation assistance',
+        'Market research custom reports',
+        'Competitive intelligence alerts',
+        'Custom AI business advisor',
+        'Unlimited storage & bandwidth',
+        'Advanced team permissions',
+        'Audit logs & compliance tracking'
       ],
       limitations: [],
       cta: 'Contact Sales',
@@ -87,19 +121,29 @@ const PricingPage: React.FC = () => {
       name: 'Legal Review Service',
       price: 199,
       description: 'Get your legal documents reviewed by qualified attorneys',
-      icon: <Shield className="w-6 h-6" />
+      icon: <Shield className="w-6 h-6" />,
+      availableFor: ['Pro', 'Enterprise']
     },
     {
       name: '1-on-1 Mentorship',
       price: 299,
       description: 'Monthly 1-hour sessions with experienced entrepreneurs',
-      icon: <Users className="w-6 h-6" />
+      icon: <Users className="w-6 h-6" />,
+      availableFor: ['Pro', 'Enterprise']
+    },
+    {
+      name: 'Custom AI Training',
+      price: 499,
+      description: 'Train AI models on your specific industry and preferences',
+      icon: <Brain className="w-6 h-6" />,
+      availableFor: ['Enterprise']
     },
     {
       name: 'Priority Support',
       price: 49,
       description: 'Get support responses within 2 hours, 24/7',
-      icon: <Headphones className="w-6 h-6" />
+      icon: <Headphones className="w-6 h-6" />,
+      availableFor: ['Pro', 'Enterprise']
     }
   ];
 
@@ -122,7 +166,7 @@ const PricingPage: React.FC = () => {
     },
     {
       question: 'How does team billing work?',
-      answer: 'Enterprise plans include up to 10 team members. Additional users can be added for $15/month each.'
+      answer: 'Pro plans include up to 3 team members. Enterprise plans include unlimited team members. Additional Pro users can be added for $10/month each.'
     },
     {
       question: 'Can I use StartupLaunch for client work?',
@@ -190,7 +234,7 @@ const PricingPage: React.FC = () => {
       {/* Pricing Cards */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {plans.map((plan, index) => (
               <div
                 key={index}
@@ -241,18 +285,21 @@ const PricingPage: React.FC = () => {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-4 mb-8">
+                    <h4 className="font-semibold text-gray-900">What's included:</h4>
+                    <ul className="space-y-3 max-h-80 overflow-y-auto">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-start">
+                          <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700 text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   {/* CTA Button */}
                   <Link
-                    to={plan.name === 'Enterprise' ? '/contact' : '/signup'}
+                    to={plan.name === 'Enterprise' ? '/contact' : `/signup?plan=${plan.name.toLowerCase()}`}
                     className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2 ${
                       plan.popular
                         ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
@@ -277,11 +324,11 @@ const PricingPage: React.FC = () => {
               Optional Add-ons
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Enhance your experience with these premium services available to all paid plan users.
+              Enhance your experience with these premium services available to paid plan users.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {addOns.map((addon, index) => (
               <div key={index} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors">
                 <div className="flex items-center space-x-4 mb-4">
@@ -295,7 +342,14 @@ const PricingPage: React.FC = () => {
                     <div className="text-2xl font-bold text-gray-900">${addon.price}</div>
                   </div>
                 </div>
-                <p className="text-gray-600">{addon.description}</p>
+                <p className="text-gray-600 mb-3">{addon.description}</p>
+                <div className="flex flex-wrap gap-1">
+                  {addon.availableFor.map((plan) => (
+                    <span key={plan} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                      {plan}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -335,10 +389,10 @@ const PricingPage: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/signup"
+              to="/signup?plan=pro"
               className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
             >
-              <span>Start Free Trial</span>
+              <span>Start Pro Trial</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link

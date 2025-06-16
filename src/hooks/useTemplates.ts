@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Template, CartItem } from '../types';
 import { useUser } from '@clerk/clerk-react';
+import { useSubscription } from './useSubscription';
 import { getMockTemplates } from '../utils/mockData';
 import { secureLocalStorage } from '../utils/security';
 
@@ -17,6 +18,7 @@ interface UseTemplatesReturn {
 
 export const useTemplates = (): UseTemplatesReturn => {
   const { user } = useUser();
+  const { plan, features } = useSubscription();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [cart, setCart] = useState<CartItem[]>(() => {
     // Load cart from localStorage if available
@@ -26,7 +28,7 @@ export const useTemplates = (): UseTemplatesReturn => {
 
   useEffect(() => {
     loadTemplates();
-  }, []);
+  }, [plan]);
 
   // Persist cart to localStorage whenever it changes
   useEffect(() => {
@@ -41,7 +43,31 @@ export const useTemplates = (): UseTemplatesReturn => {
       
       const mockTemplates = getMockTemplates();
       
-      setTemplates(mockTemplates);
+      // Filter templates based on subscription plan
+      const filteredTemplates = mockTemplates.map(template => {
+        let isAccessible = false;
+        
+        switch (features.templatesAccess) {
+          case 'all':
+            isAccessible = true;
+            break;
+          case 'premium':
+            isAccessible = template.category !== 'Enterprise Only';
+            break;
+          case 'basic':
+            isAccessible = ['Business Plan', 'Marketing', 'Productivity'].includes(template.category);
+            break;
+        }
+        
+        return {
+          ...template,
+          isPurchased: isAccessible || template.isPurchased,
+          // Lock premium templates for basic users
+          price: !isAccessible && plan === 'starter' ? template.price : template.price
+        };
+      });
+      
+      setTemplates(filteredTemplates);
     } catch (error) {
       console.error('Failed to load templates:', error);
     } finally {
@@ -89,6 +115,15 @@ export const useTemplates = (): UseTemplatesReturn => {
     try {
       // Simulate purchase process
       await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Mark templates as purchased
+      setTemplates(prev => prev.map(template => {
+        const cartItem = cart.find(item => item.templateId === template.id);
+        if (cartItem) {
+          return { ...template, isPurchased: true };
+        }
+        return template;
+      }));
 
       clearCart();
     } catch (error) {
