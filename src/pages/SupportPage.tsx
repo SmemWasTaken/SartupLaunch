@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../contexts/UserContext';
 import { useSupport } from '../hooks/useSupport';
 import { usePlanFeatures } from '../hooks/usePlanFeatures';
-import { TicketCategory, TicketPriority, TicketStatus } from '../types/support';
+import { 
+  TicketCategory, 
+  TicketPriority, 
+  TicketStatus, 
+  SupportTicket,
+  CreateSupportTicketInput,
+  SupportComment,
+  TicketAttachment
+} from '../types/support';
 import {
   ArrowLeft,
   Plus,
@@ -24,6 +32,9 @@ import {
   Settings,
 } from 'lucide-react';
 
+const CATEGORY_OPTIONS: TicketCategory[] = ['technical', 'billing', 'feature_request', 'bug', 'other'];
+const DEFAULT_CATEGORY: TicketCategory = 'technical';
+
 export default function SupportPage() {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -34,10 +45,9 @@ export default function SupportPage() {
     isLoading,
     error,
     createTicket,
-    updateTicket,
-    addMessage,
     updateTicketStatus,
     updateTicketPriority,
+    addMessage,
     getArticle,
     markArticleHelpful,
   } = useSupport();
@@ -48,14 +58,14 @@ export default function SupportPage() {
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
   const [newTicketTitle, setNewTicketTitle] = useState('');
   const [newTicketContent, setNewTicketContent] = useState('');
-  const [newTicketCategory, setNewTicketCategory] = useState<TicketCategory>('technical');
+  const [newTicketCategory, setNewTicketCategory] = useState<TicketCategory>(DEFAULT_CATEGORY);
   const [newTicketPriority, setNewTicketPriority] = useState<TicketPriority>('medium');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
 
   // Redirect if not authenticated
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user) {
       navigate('/login');
     }
@@ -82,14 +92,13 @@ export default function SupportPage() {
         category: newTicketCategory,
         priority: newTicketPriority,
         status: 'open',
-        userId: user?.id || '',
-        userName: user?.name || '',
+        userId: user.id,
       });
 
       setShowNewTicketForm(false);
       setNewTicketTitle('');
       setNewTicketContent('');
-      setNewTicketCategory('technical');
+      setNewTicketCategory(DEFAULT_CATEGORY);
       setNewTicketPriority('medium');
     } catch (err) {
       console.error('Failed to create ticket:', err);
@@ -97,10 +106,10 @@ export default function SupportPage() {
   };
 
   const handleAddMessage = async (ticketId: string) => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
 
     try {
-      await addMessage(ticketId, newMessage);
+      await addMessage(ticketId, newMessage, false);
       setNewMessage('');
     } catch (err) {
       console.error('Failed to add message:', err);
@@ -162,6 +171,35 @@ export default function SupportPage() {
       case 'low':
         return 'bg-green-100 text-green-800';
     }
+  };
+
+  const renderTicketMessages = (ticket: SupportTicket) => {
+    return ticket.comments?.map((comment: SupportComment) => (
+      <div key={comment.id} className="flex space-x-3 mb-4">
+        <div className="flex-1 bg-white rounded-lg p-4 shadow">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-900">
+              {comment.userId === user?.id ? 'You' : 'Support Agent'}
+            </span>
+            <span className="text-sm text-gray-500">
+              {new Date(comment.createdAt).toLocaleString()}
+            </span>
+          </div>
+          <p className="text-gray-700">{comment.content}</p>
+        </div>
+      </div>
+    ));
+  };
+
+  const renderTicketAttachments = (attachments: string[] = []) => {
+    return attachments.map((url: string) => (
+      <div key={url} className="flex items-center space-x-2 text-sm text-gray-600">
+        <Paperclip className="h-4 w-4" />
+        <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">
+          {url.split('/').pop()}
+        </a>
+      </div>
+    ));
   };
 
   if (isLoading) {
@@ -288,15 +326,19 @@ export default function SupportPage() {
                     </label>
                     <select
                       id="category"
+                      name="category"
                       value={newTicketCategory}
-                      onChange={(e) => setNewTicketCategory(e.target.value as TicketCategory)}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                        // @ts-expect-error: value is always a TicketCategory from CATEGORY_OPTIONS
+                        setNewTicketCategory(e.target.value);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                      <option value="technical">Technical</option>
-                      <option value="billing">Billing</option>
-                      <option value="feature_request">Feature Request</option>
-                      <option value="bug">Bug Report</option>
-                      <option value="other">Other</option>
+                      {CATEGORY_OPTIONS.map((category) => (
+                        <option key={category} value={category}>
+                          {category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -453,7 +495,7 @@ export default function SupportPage() {
                       className="inline-flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700"
                     >
                       <MessageSquare className="h-4 w-4" />
-                      <span>{ticket.messages.length} messages</span>
+                      <span>{ticket.comments?.length} messages</span>
                     </button>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -483,47 +525,8 @@ export default function SupportPage() {
                 {/* Messages Section */}
                 {selectedTicket === ticket.id && (
                   <div className="mt-4 space-y-4">
-                    {ticket.messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`bg-gray-50 rounded-lg p-4 ${
-                          message.authorRole === 'support_agent' ? 'border-l-4 border-blue-500' : ''
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-gray-900">
-                              {message.authorName}
-                            </span>
-                            {message.authorRole === 'support_agent' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                Support Agent
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-sm text-gray-500">
-                            {new Date(message.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-600">{message.content}</p>
-                        {message.attachments.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {message.attachments.map((attachment) => (
-                              <a
-                                key={attachment.id}
-                                href={attachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
-                              >
-                                <Paperclip className="h-3 w-3 mr-1" />
-                                {attachment.name}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                    {renderTicketMessages(ticket)}
+                    {renderTicketAttachments(ticket.attachments)}
 
                     {/* New Message Form */}
                     <div className="mt-4">

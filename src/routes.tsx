@@ -14,6 +14,7 @@ import TeamActivityPage from './pages/TeamActivityPage';
 import CommunityPage from './pages/CommunityPage';
 import SupportPage from './pages/SupportPage';
 import { SupportAnalyticsPage } from '@/pages/SupportAnalyticsPage';
+import { CreateTicketPage } from './pages/support/CreateTicketPage';
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +72,10 @@ export const router = createBrowserRouter([
   {
     path: '/support',
     element: <SupportPage />,
+  },
+  {
+    path: '/support/create',
+    element: <CreateTicketPage />,
   },
   {
     path: 'support/analytics',

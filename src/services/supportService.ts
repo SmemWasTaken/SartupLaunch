@@ -10,14 +10,31 @@ import {
   KnowledgeBaseArticle,
   TicketStatus,
   TicketPriority,
+  CreateSupportTicketInput,
+  UpdateSupportTicketInput,
+  SupportTicketFilters,
+  SupportComment
 } from '../types/support';
+import { supabase } from '../lib/supabaseClient';
 
 const POSTS_STORAGE_KEY = 'community_posts';
 const TICKETS_STORAGE_KEY = 'support_tickets';
 const AGENTS_STORAGE_KEY = 'support_agents';
 const ARTICLES_STORAGE_KEY = 'knowledge_base_articles';
 
-class SupportService {
+export class SupportService {
+  private static instance: SupportService;
+  private readonly tableName = 'support_tickets';
+
+  private constructor() {}
+
+  public static getInstance(): SupportService {
+    if (!SupportService.instance) {
+      SupportService.instance = new SupportService();
+    }
+    return SupportService.instance;
+  }
+
   // Community Posts
   getPosts(): Record<string, CommunityPost> {
     const posts = localStorage.getItem(POSTS_STORAGE_KEY);
@@ -124,56 +141,99 @@ class SupportService {
     localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(tickets));
   }
 
-  async createTicket(ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'messages' | 'attachments'>): Promise<SupportTicket> {
-    const tickets = this.getTickets();
-    const newTicket: SupportTicket = {
-      ...ticket,
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      messages: [],
-      attachments: [],
-    };
-    tickets[newTicket.id] = newTicket;
-    this.saveTickets(tickets);
-    return newTicket;
+  async createTicket(input: CreateSupportTicketInput, userId: string): Promise<SupportTicket> {
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .insert({
+        ...input,
+        userId,
+        status: 'open',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to create support ticket: ${error.message}`);
+    return data;
   }
 
-  async getTicket(id: string): Promise<SupportTicket | null> {
-    const tickets = this.getTickets();
-    return tickets[id] || null;
+  async getTicket(id: string): Promise<SupportTicket> {
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*, comments(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) throw new Error(`Failed to fetch support ticket: ${error.message}`);
+    return data;
   }
 
-  async updateTicket(id: string, updates: Partial<SupportTicket>): Promise<SupportTicket | null> {
-    const tickets = this.getTickets();
-    if (!tickets[id]) return null;
+  async updateTicket(id: string, input: UpdateSupportTicketInput): Promise<SupportTicket> {
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .update({
+        ...input,
+        updatedAt: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-    const updatedTicket = {
-      ...tickets[id],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-    tickets[id] = updatedTicket;
-    this.saveTickets(tickets);
-    return updatedTicket;
+    if (error) throw new Error(`Failed to update support ticket: ${error.message}`);
+    return data;
   }
 
-  async addMessage(ticketId: string, message: Omit<TicketMessage, 'id' | 'createdAt' | 'updatedAt' | 'attachments'>): Promise<TicketMessage | null> {
-    const tickets = this.getTickets();
-    if (!tickets[ticketId]) return null;
+  async listTickets(filters: SupportTicketFilters = {}): Promise<SupportTicket[]> {
+    let query = supabase
+      .from(this.tableName)
+      .select('*, comments(*)');
 
-    const newMessage: TicketMessage = {
-      ...message,
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      attachments: [],
-    };
+    // Apply filters
+    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.priority) query = query.eq('priority', filters.priority);
+    if (filters.category) query = query.eq('category', filters.category);
+    if (filters.assignedTo) query = query.eq('assignedTo', filters.assignedTo);
+    if (filters.userId) query = query.eq('userId', filters.userId);
+    if (filters.search) {
+      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    }
+    if (filters.startDate) query = query.gte('createdAt', filters.startDate);
+    if (filters.endDate) query = query.lte('createdAt', filters.endDate);
 
-    tickets[ticketId].messages.push(newMessage);
-    tickets[ticketId].updatedAt = new Date().toISOString();
-    this.saveTickets(tickets);
-    return newMessage;
+    const { data, error } = await query.order('createdAt', { ascending: false });
+
+    if (error) throw new Error(`Failed to list support tickets: ${error.message}`);
+    return data || [];
+  }
+
+  async addComment(ticketId: string, userId: string, content: string, isInternal: boolean = false): Promise<SupportComment> {
+    const { data, error } = await supabase
+      .from('support_comments')
+      .insert({
+        ticketId,
+        userId,
+        content,
+        isInternal,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to add comment: ${error.message}`);
+    return data;
+  }
+
+  async getComments(ticketId: string): Promise<SupportComment[]> {
+    const { data, error } = await supabase
+      .from('support_comments')
+      .select('*')
+      .eq('ticketId', ticketId)
+      .order('createdAt', { ascending: true });
+
+    if (error) throw new Error(`Failed to fetch comments: ${error.message}`);
+    return data || [];
   }
 
   async updateTicketStatus(id: string, status: TicketStatus): Promise<SupportTicket | null> {
@@ -285,4 +345,4 @@ class SupportService {
   }
 }
 
-export const supportService = new SupportService(); 
+export const supportService = SupportService.getInstance(); 

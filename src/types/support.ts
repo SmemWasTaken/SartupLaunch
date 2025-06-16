@@ -44,18 +44,53 @@ export interface SupportTicket {
   id: string;
   title: string;
   description: string;
-  userId: string;
-  userName: string;
-  category: TicketCategory;
-  priority: TicketPriority;
-  status: TicketStatus;
+  status: SupportStatus;
+  priority: SupportPriority;
   createdAt: string;
   updatedAt: string;
+  userId: string;
   assignedTo?: string;
-  assignedToName?: string;
-  messages: TicketMessage[];
-  attachments: TicketAttachment[];
-  relatedPosts?: string[]; // IDs of related community posts
+  category: string;
+  attachments?: string[];
+  comments?: SupportComment[];
+}
+
+export interface SupportComment {
+  id: string;
+  ticketId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  isInternal?: boolean;
+}
+
+export interface CreateSupportTicketInput {
+  title: string;
+  description: string;
+  priority: SupportPriority;
+  category: string;
+  attachments?: string[];
+}
+
+export interface UpdateSupportTicketInput {
+  title?: string;
+  description?: string;
+  status?: SupportStatus;
+  priority?: SupportPriority;
+  assignedTo?: string;
+  category?: string;
+}
+
+export interface SupportTicketFilters {
+  status?: SupportStatus;
+  priority?: SupportPriority;
+  category?: string;
+  assignedTo?: string;
+  userId?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface TicketMessage {
@@ -110,4 +145,7 @@ export interface KnowledgeBaseArticle {
   notHelpfulCount: number;
   isPublished: boolean;
   relatedArticles: string[];
-} 
+}
+
+export type SupportStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+export type SupportPriority = 'low' | 'medium' | 'high' | 'urgent'; 
