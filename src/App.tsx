@@ -31,6 +31,7 @@ import { LoadingPage } from './components/LoadingSpinner';
 import AdminDashboard from './components/AdminDashboard';
 import AllIdeasPage from './pages/AllIdeasPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import FavoritesPage from './pages/FavoritesPage';
 
 // App Layout Component
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -199,6 +200,8 @@ const AppContent: React.FC = () => {
             </AppLayout>
           </ProtectedRoute>
         } />
+
+        <Route path="/dashboard/favorites" element={<AppLayout><FavoritesPage /></AppLayout>} />
 
         <Route path="/admin" element={
           <ProtectedRoute>

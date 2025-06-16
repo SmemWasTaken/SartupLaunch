@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Lightbulb, 
   ShoppingBag, 
@@ -28,6 +28,7 @@ export const DashboardPage: React.FC = () => {
   const { templates } = useTemplates();
   const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
   const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   if (!isLoaded) {
     return <LoadingSpinner size="lg" text="Loading your dashboard..." />;
@@ -139,20 +140,38 @@ export const DashboardPage: React.FC = () => {
       {/* Stats Grid */}
       <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200"
-          >
-            <div className="flex items-center space-x-4">
-              <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                <stat.icon className={`w-6 h-6 ${stat.color}`} />
+          stat.label === 'Favorites' ? (
+            <Link
+              key={index}
+              to="/dashboard/favorites"
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200 block"
+            >
+              <div className="flex items-center space-x-4">
+                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-gray-600">{stat.label}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-600">{stat.label}</p>
+            </Link>
+          ) : (
+            <div
+              key={index}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200"
+            >
+              <div className="flex items-center space-x-4">
+                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-gray-600">{stat.label}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )
         ))}
       </div>
 
