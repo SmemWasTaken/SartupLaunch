@@ -201,7 +201,7 @@ const AppContent: React.FC = () => {
         } />
 
         <Route path="/admin" element={
-          <ProtectedRoute adminOnly>
+          <ProtectedRoute>
             <AppLayout>
               <AdminDashboard />
             </AppLayout>

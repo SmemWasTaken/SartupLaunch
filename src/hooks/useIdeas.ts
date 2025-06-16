@@ -196,91 +196,12 @@ export const useIdeas = (): UseIdeasReturn => {
 
     try {
       const { error } = await supabase
-      if (isDemoMode) {
-        // Check for duplicates in demo mode too
-        const demoIdeas = JSON.parse(localStorage.getItem('demo_ideas') || '[]');
-        const existingDemoIdea = demoIdeas.find((idea: StartupIdea) => 
-          idea.title === ideaData.title && 
-          idea.description === ideaData.description
-        );
-        
-        if (existingDemoIdea) {
-          throw new Error('You have already saved this idea');
-        }
-        
-        const updatedIdeas = [newIdea, ...ideas];
-        setIdeas(updatedIdeas);
-        localStorage.setItem('demo_ideas', JSON.stringify(updatedIdeas));
-        
-        // Mark save-idea step as complete
-        completeStep('save-idea');
-      } else {
-        // Check database for existing idea
-        const { data: existingDbIdea } = await supabase
-          .from('startup_ideas')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('title', ideaData.title)
-          .eq('description', ideaData.description)
-          .single();
-          
-        if (existingDbIdea) {
-          throw new Error('You have already saved this idea');
-        }
-        
-        const { error } = await supabase
-          .from('startup_ideas')
-          .insert({
-            id: newIdea.id,
-            user_id: newIdea.userId,
-            title: newIdea.title,
-            description: newIdea.description,
-            category: newIdea.category,
-            difficulty: newIdea.difficulty,
-            time_to_launch: newIdea.timeToLaunch,
-            revenue_estimate: newIdea.revenueEstimate,
-            market_size: newIdea.marketSize,
-            tags: newIdea.tags,
-            is_favorite: newIdea.isFavorite,
-          });
+        .from('startup_ideas')
+        .update({ is_favorite: updatedIdea.isFavorite })
+        .eq('id', ideaId);
 
-        if (error) throw error;
-        setIdeas(prev => [newIdea, ...prev]);
-        
-        // Mark save-idea step as complete
-        completeStep('save-idea');
-      }
-    } catch (error) {
-      console.error('Failed to save idea:', error);
-      if (error instanceof Error && error.message === 'You have already saved this idea') {
-        setError('You have already saved this idea');
-      } else {
-        setError('Failed to save idea');
-      }
-      throw error;
-    }
-  };
-
-  const toggleFavorite = async (ideaId: string) => {
-    const idea = ideas.find(i => i.id === ideaId);
-    if (!idea) return;
-
-    const updatedIdea = { ...idea, isFavorite: !idea.isFavorite };
-
-    try {
-      if (isDemoMode) {
-        const updatedIdeas = ideas.map(i => i.id === ideaId ? updatedIdea : i);
-        setIdeas(updatedIdeas);
-        localStorage.setItem('demo_ideas', JSON.stringify(updatedIdeas));
-      } else {
-        const { error } = await supabase
-          .from('startup_ideas')
-          .update({ is_favorite: updatedIdea.isFavorite })
-          .eq('id', ideaId);
-
-        if (error) throw error;
-        setIdeas(prev => prev.map(i => i.id === ideaId ? updatedIdea : i));
-      }
+      if (error) throw error;
+      setIdeas(prev => prev.map(i => i.id === ideaId ? updatedIdea : i));
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
       setError('Failed to update favorite status');
@@ -290,19 +211,13 @@ export const useIdeas = (): UseIdeasReturn => {
 
   const deleteIdea = async (ideaId: string) => {
     try {
-      if (isDemoMode) {
-        const updatedIdeas = ideas.filter(i => i.id !== ideaId);
-        setIdeas(updatedIdeas);
-        localStorage.setItem('demo_ideas', JSON.stringify(updatedIdeas));
-      } else {
-        const { error } = await supabase
-          .from('startup_ideas')
-          .delete()
-          .eq('id', ideaId);
+      const { error } = await supabase
+        .from('startup_ideas')
+        .delete()
+        .eq('id', ideaId);
 
-        if (error) throw error;
-        setIdeas(prev => prev.filter(i => i.id !== ideaId));
-      }
+      if (error) throw error;
+      setIdeas(prev => prev.filter(i => i.id !== ideaId));
     } catch (error) {
       console.error('Failed to delete idea:', error);
       setError('Failed to delete idea');
