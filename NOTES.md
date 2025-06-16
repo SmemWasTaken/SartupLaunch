@@ -62,4 +62,14 @@
 
 ## Last Updated
 - Clerk-only auth, live Supabase, and OpenAI integration completed.
-- See GitHub commit history for details. 
+- See GitHub commit history for details.
+
+## Email Integration
+- Transactional email is now handled via [Resend](https://resend.com/).
+- API key is set directly in `src/lib/resend.ts` (for now; move to env for production).
+- Use `sendEmail({ to, subject, html })` from `src/lib/resend.ts` to send emails anywhere in the app.
+- Example:
+  ```ts
+  import { sendEmail } from '../lib/resend';
+  await sendEmail({ to: 'user@example.com', subject: 'Welcome!', html: '<b>Hello!</b>' });
+  ``` 

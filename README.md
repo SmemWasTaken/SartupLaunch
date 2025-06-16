@@ -12,6 +12,7 @@ A modern React application that helps entrepreneurs generate startup ideas using
 - ⚡ Performance optimized with code splitting and lazy loading
 - 📊 Analytics integration ready
 - 🎨 Beautiful UI with Tailwind CSS
+- ✉️ Transactional email via Resend (see `src/lib/resend.ts`)
 
 ## Tech Stack
 
@@ -225,3 +226,6 @@ This app uses Clerk for all authentication. See `/src/pages/LoginPage.tsx` and `
 
 ## Environment Variables
 See `.env.example` for all required variables. Never commit your real `.env` to version control.
+
+## Email Integration
+Transactional email is handled via [Resend](https://resend.com/). Use the helper in `src/lib/resend.ts`.
