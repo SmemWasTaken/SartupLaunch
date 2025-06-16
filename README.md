@@ -7,11 +7,12 @@ A comprehensive platform for entrepreneurs to generate, validate, and launch sta
 ## Features
 
 ### Core Functionality
-- AI-powered idea generation
+- AI-powered idea generation (via Netlify serverless functions)
 - Idea validation and analysis
 - Dashboard for idea management
 - Favorites system for saving ideas
-- User authentication and profiles
+- User authentication and profiles (via Clerk)
+- Secure API key handling
 
 ### Paid Features
 - Advanced analytics dashboard
@@ -50,10 +51,12 @@ A comprehensive platform for entrepreneurs to generate, validate, and launch sta
   - Recharts for data visualization
 - **State Management**: React Context
 - **Routing**: React Router
-- **Analytics**: Custom analytics service
-- **Authentication**: Custom auth system (local storage for demo)
-- **Data Visualization**: Recharts
-- **Icons**: Lucide React
+- **Authentication**: Clerk
+- **Database**: Supabase
+- **AI Integration**: OpenAI (via Netlify Functions)
+- **Payments**: Stripe
+- **Email**: Resend
+- **Deployment**: Netlify
 
 ## Getting Started
 
@@ -84,12 +87,24 @@ A comprehensive platform for entrepreneurs to generate, validate, and launch sta
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory with the following variables:
 
 ```env
-VITE_API_URL=your_api_url
-VITE_ANALYTICS_KEY=your_analytics_key
+# Authentication
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
+
+# Database
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Payments
+VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
+
+# AI (Server-side only)
+OPENAI_API_KEY=your_openai_key
 ```
+
+Note: The `OPENAI_API_KEY` is only used in serverless functions and should not be exposed to the client.
 
 ## Project Structure
 
@@ -105,6 +120,11 @@ src/
 ├── services/          # Service layer
 ├── types/             # TypeScript type definitions
 └── routes.tsx         # Application routes
+
+netlify/
+└── functions/         # Serverless functions
+    ├── generateIdea.ts    # AI idea generation
+    └── initDb.ts          # Database initialization
 ```
 
 ## Development
@@ -147,15 +167,25 @@ This project is configured for automatic deployment on Netlify. The deployment p
    - Environment variables are managed through Netlify's dashboard
    - Required variables:
      ```env
-     VITE_API_URL=your_api_url
-     VITE_ANALYTICS_KEY=your_analytics_key
+     # Authentication
+     VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
+     
+     # Database
+     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+     
+     # Payments
+     VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
+     
+     # AI (Server-side only)
+     OPENAI_API_KEY=your_openai_key
      ```
 
 3. **Build Settings**
-   - Node.js version: 18
+   - Node.js version: 18.20.0
    - Build command: `npm run build`
    - Publish directory: `dist`
-   - Build plugins: None required
+   - Functions directory: `netlify/functions`
 
 4. **Security Headers**
    - Content Security Policy (CSP)
@@ -164,10 +194,11 @@ This project is configured for automatic deployment on Netlify. The deployment p
    - X-XSS-Protection
    - Referrer-Policy
 
-5. **Custom Domain**
-   - Configure your custom domain in Netlify's dashboard
-   - SSL/TLS certificates are automatically provisioned
-   - DNS records are managed through Netlify
+5. **Serverless Functions**
+   - AI idea generation is handled by serverless functions
+   - Functions are deployed automatically with the main application
+   - Environment variables are securely managed
+   - Rate limiting is implemented for API calls
 
 ### Manual Deployment
 

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Serverless function for AI idea generation
+- Secure API key handling via Netlify Functions
+- Rate limiting for idea generation
+- Updated environment variable configuration
+- TypeScript types for generated ideas
 - Support ticket system with priority levels and categories
 - Community forum with posts, comments, and reactions
 - Knowledge base with searchable articles and feedback
@@ -27,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security headers configuration
 
 ### Changed
+- Moved OpenAI API calls to serverless functions
+- Updated client-side code to use serverless endpoints
+- Improved security by removing API key from client bundle
+- Updated Netlify configuration for serverless functions
+- Updated documentation for environment variables
 - Updated project structure for better organization
 - Improved type safety across the application
 - Enhanced module resolution with path aliases
@@ -37,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved development scripts in package.json
 
 ### Fixed
+- Security issue with exposed API keys
+- Build process optimization
+- TypeScript type definitions for generated ideas
 - Type issues in team service
 - Module resolution for path aliases
 - Linter errors in various components
@@ -46,22 +59,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript project reference issues
 - Security headers setup
 
-## [0.1.0] - 2024-03-20
+## [0.1.0] - 2024-03-19
 
 ### Added
-- Initial project setup with React and TypeScript
+- Initial project setup with Vite and React
+- Clerk authentication integration
+- Supabase database integration
+- Stripe payment processing
+- Resend email integration
 - Basic idea generation functionality
-- User authentication system
-- Dashboard for idea management
-- Favorites system
-- Basic analytics tracking
-- Team management foundation
-- Support system foundation
+- User dashboard and profile management
+- Admin features and analytics
 
 ### Changed
-- Project structure established
-- Development environment configured
 - Build system set up with Vite
+- Development environment configuration
 
 ### Fixed
 - Initial setup issues

@@ -90,4 +90,40 @@
 - Stripe is used for payment processing.
 - Add the following to your `.env` and Netlify environment variables:
   - `VITE_STRIPE_PUBLISHABLE_KEY`
-  - `STRIPE_SECRET_KEY` 
+  - `STRIPE_SECRET_KEY`
+
+## Serverless Functions & API Security
+
+### OpenAI Integration
+- OpenAI API calls are now handled by Netlify serverless functions
+- The `generateIdea.ts` function handles all AI idea generation
+- API key is stored securely in Netlify environment variables
+- Rate limiting is implemented to prevent abuse
+- Client-side code no longer has access to the API key
+
+### Environment Variables
+- Server-side variables (Netlify Functions):
+  ```env
+  OPENAI_API_KEY=your_openai_key
+  ```
+- Client-side variables (Vite):
+  ```env
+  VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
+  VITE_SUPABASE_URL=your_supabase_url
+  VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+  VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
+  ```
+
+### Security Best Practices
+- API keys are never exposed to the client
+- Serverless functions handle all sensitive operations
+- Rate limiting prevents abuse of the API
+- Environment variables are properly segregated
+- TypeScript types ensure type safety
+- Error handling is implemented at all levels
+
+### Deployment Notes
+- Netlify Functions are automatically deployed with the main application
+- Environment variables must be set in Netlify dashboard
+- Functions are bundled using esbuild
+- OpenAI package is marked as external to reduce bundle size 
