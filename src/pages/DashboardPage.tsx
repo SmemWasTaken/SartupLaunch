@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Lightbulb, 
@@ -24,9 +24,10 @@ import { OnboardingTour } from '../components/OnboardingTour';
 
 export const DashboardPage: React.FC = () => {
   const { user, isLoaded, isSignedIn } = useUser();
-  const { ideas, isLoading: ideasLoading } = useIdeas();
+  const { ideas, isLoading: ideasLoading, toggleFavorite } = useIdeas();
   const { templates } = useTemplates();
   const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
+  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
 
   if (!isLoaded) {
     return <LoadingSpinner size="lg" text="Loading your dashboard..." />;
@@ -222,6 +223,18 @@ export const DashboardPage: React.FC = () => {
                       <TrendingUp className="w-3 h-3" />
                       <span>{idea.category}</span>
                     </span>
+                    <button
+                      aria-label={idea.isFavorite ? 'Unfavorite' : 'Favorite'}
+                      className="ml-2 p-1 rounded-full focus:outline-none"
+                      disabled={favoriteLoading === idea.id}
+                      onClick={async () => {
+                        setFavoriteLoading(idea.id);
+                        await toggleFavorite(idea.id);
+                        setFavoriteLoading(null);
+                      }}
+                    >
+                      <Heart className={`w-5 h-5 transition-colors duration-200 ${idea.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                    </button>
                   </div>
                 </div>
               ))}

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useIdeas } from '../hooks/useIdeas';
-import { Clock, TrendingUp, Lightbulb, ArrowLeft } from 'lucide-react';
+import { Clock, TrendingUp, Lightbulb, ArrowLeft, Heart } from 'lucide-react';
 
 const AllIdeasPage: React.FC = () => {
-  const { ideas, isLoading } = useIdeas();
+  const { ideas, isLoading, toggleFavorite } = useIdeas();
+  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
@@ -57,6 +58,18 @@ const AllIdeasPage: React.FC = () => {
                 <div className="flex items-center space-x-2 text-xs text-gray-500">
                   <Clock className="w-3 h-3" />
                   <span>{new Date(idea.createdAt).toLocaleDateString()}</span>
+                  <button
+                    aria-label={idea.isFavorite ? 'Unfavorite' : 'Favorite'}
+                    className="ml-2 p-1 rounded-full focus:outline-none"
+                    disabled={favoriteLoading === idea.id}
+                    onClick={async () => {
+                      setFavoriteLoading(idea.id);
+                      await toggleFavorite(idea.id);
+                      setFavoriteLoading(null);
+                    }}
+                  >
+                    <Heart className={`w-5 h-5 transition-colors duration-200 ${idea.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                  </button>
                 </div>
               </div>
             ))}
