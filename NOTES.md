@@ -1,5 +1,12 @@
 # Project Notes: StartupLaunch
 
+## Clerk Authentication Integration
+- Integrated Clerk authentication using the Clerk React SDK (`@clerk/clerk-react`).
+- The app is wrapped in `<ClerkProvider>` in `src/main.tsx` using the publishable key.
+- Professional sign-in and sign-up pages are available at `/sign-in` and `/sign-up`, using Clerk's `<SignIn />` and `<SignUp />` components.
+- The header displays Sign In/Sign Up buttons (when signed out) and a user avatar menu (when signed in), all styled to match the app.
+- To protect routes, use Clerk's `useAuth`, `SignedIn`, or `SignedOut` components as needed.
+
 ## Admin Dashboard
 - The `/admin` route is protected and only accessible to the user with the email `admin@startuplaunch.com`.
 - If a non-admin user attempts to access `/admin`, they will see an "Access denied: Admins only" message.
