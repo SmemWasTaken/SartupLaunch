@@ -9,7 +9,7 @@ const FavoritesPage: React.FC = () => {
   const navigate = useNavigate();
   const { favorites, isLoading, removeFavorite } = useFavorites();
 
-  if (!user) {
+  if (!user?.id) {
     navigate('/login');
     return null;
   }
@@ -56,34 +56,37 @@ const FavoritesPage: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {favorites.map((idea) => (
-              <div
-                key={idea.id}
-                className="bg-white overflow-hidden shadow rounded-lg"
-              >
-                <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-900">{idea.title}</h3>
-                  <p className="mt-2 text-sm text-gray-500">{idea.description}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {idea.difficulty}
-                      </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {idea.marketSize}
-                      </span>
+            {favorites.map((idea) => {
+              const ideaId = idea.id!;
+              return (
+                <div
+                  key={ideaId}
+                  className="bg-white overflow-hidden shadow rounded-lg"
+                >
+                  <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900">{idea.title}</h3>
+                    <p className="mt-2 text-sm text-gray-500">{idea.description}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {idea.difficulty}
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {idea.marketSize}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => removeFavorite(ideaId)}
+                        className="text-red-500 hover:text-red-600"
+                        aria-label="Remove from favorites"
+                      >
+                        <Heart className="h-5 w-5 fill-current" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => removeFavorite(idea.id)}
-                      className="text-red-500 hover:text-red-600"
-                      aria-label="Remove from favorites"
-                    >
-                      <Heart className="h-5 w-5 fill-current" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>

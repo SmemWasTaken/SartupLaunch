@@ -10,7 +10,7 @@ export const useFavorites = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       // Load favorites from localStorage
       const storedFavorites = localStorage.getItem(`${FAVORITES_STORAGE_KEY}_${user.id}`);
       if (storedFavorites) {
@@ -26,10 +26,16 @@ export const useFavorites = () => {
   }, [user]);
 
   const addFavorite = (idea: GeneratedIdea) => {
-    if (!user) return;
+    if (!user?.id) return;
+
+    // Ensure the idea has an ID
+    const ideaWithId = {
+      ...idea,
+      id: idea.id || `idea-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
 
     setFavorites((prevFavorites) => {
-      const newFavorites = [...prevFavorites, idea];
+      const newFavorites = [...prevFavorites, ideaWithId];
       localStorage.setItem(
         `${FAVORITES_STORAGE_KEY}_${user.id}`,
         JSON.stringify(newFavorites)
@@ -39,7 +45,7 @@ export const useFavorites = () => {
   };
 
   const removeFavorite = (ideaId: string) => {
-    if (!user) return;
+    if (!user?.id) return;
 
     setFavorites((prevFavorites) => {
       const newFavorites = prevFavorites.filter((idea) => idea.id !== ideaId);
@@ -52,13 +58,19 @@ export const useFavorites = () => {
   };
 
   const toggleFavorite = (idea: GeneratedIdea) => {
-    if (!user) return;
+    if (!user?.id) return;
 
-    const isFavorite = favorites.some((fav) => fav.id === idea.id);
+    // Ensure the idea has an ID
+    const ideaWithId = {
+      ...idea,
+      id: idea.id || `idea-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
+
+    const isFavorite = favorites.some((fav) => fav.id === ideaWithId.id);
     if (isFavorite) {
-      removeFavorite(idea.id);
+      removeFavorite(ideaWithId.id);
     } else {
-      addFavorite(idea);
+      addFavorite(ideaWithId);
     }
   };
 

@@ -121,7 +121,7 @@ const HowItWorksWizard: React.FC = () => {
   };
 
   const handleToggleFavorite = (idea: GeneratedIdea) => {
-    if (!user) return;
+    if (!user?.id) return;
     toggleFavorite(idea);
     analyticsService.trackIdeaFavorite(user.id, !isFavorite(idea.id));
   };
@@ -149,7 +149,7 @@ const HowItWorksWizard: React.FC = () => {
   };
 
   const handleStartTrial = () => {
-    if (user) {
+    if (user?.id) {
       navigate('/dashboard', { state: { favoriteIdeas } });
     } else {
       navigate('/signup', { state: { favoriteIdeas } });
