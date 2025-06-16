@@ -22,7 +22,7 @@ import {
 export default function CommunityPage() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { features } = usePlanFeatures();
+  const { hasFeature } = usePlanFeatures();
   const {
     posts,
     isLoading,
@@ -73,6 +73,8 @@ export default function CommunityPage() {
         tags: newPostTags.split(',').map(tag => tag.trim()).filter(Boolean),
         status: 'published',
         isPinned: false,
+        authorId: user?.id || '',
+        authorName: user?.name || '',
       });
 
       setShowNewPostForm(false);
@@ -160,7 +162,7 @@ export default function CommunityPage() {
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Community</h1>
           </div>
-          {features.communityAccess && (
+          {hasFeature('team') && (
             <button
               onClick={() => setShowNewPostForm(true)}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -461,7 +463,7 @@ export default function CommunityPage() {
                   ? 'Try adjusting your search or filter criteria'
                   : 'Be the first to start a discussion!'}
               </p>
-              {features.communityAccess && !searchQuery && selectedCategory === 'all' && (
+              {hasFeature('team') && !searchQuery && selectedCategory === 'all' && (
                 <div className="mt-6">
                   <button
                     onClick={() => setShowNewPostForm(true)}

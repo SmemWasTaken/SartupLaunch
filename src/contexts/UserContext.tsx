@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Plan } from '@/types/user';
+import { User } from '@/types/user';
 
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
+  updateUser: (updates: Partial<User>) => void;
   isLoading: boolean;
   isLoaded: boolean;
   error: Error | null;
@@ -16,6 +17,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
+  const updateUser = (updates: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
 
   useEffect(() => {
     // Load user from localStorage on mount
@@ -48,6 +57,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     setUser,
+    updateUser,
     isLoading,
     isLoaded,
     error,

@@ -28,10 +28,16 @@ const interests: Interest[] = [
   { id: 'writing', label: 'Content Creation', category: 'Skill' },
 ];
 
+const GENERATION_LIMITS: Record<string, number | 'unlimited'> = {
+  free: 5,
+  pro: 50,
+  enterprise: 'unlimited',
+};
+
 const HowItWorksWizard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { planFeatures } = usePlanFeatures();
+  const { hasFeature, currentPlan } = usePlanFeatures();
   const { toggleFavorite, isFavorite } = useFavorites();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -40,6 +46,8 @@ const HowItWorksWizard: React.FC = () => {
   const [favoriteIdeas, setFavoriteIdeas] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [generationCount, setGenerationCount] = useState(0);
+
+  const generationLimit = GENERATION_LIMITS[currentPlan] ?? 0;
 
   // Load saved state from localStorage
   useEffect(() => {
@@ -71,15 +79,14 @@ const HowItWorksWizard: React.FC = () => {
     );
   };
 
-  const generateIdeas = async () => {
+  const handleGenerate = async () => {
     if (!user) {
       navigate('/signup', { state: { from: 'how-it-works' } });
       return;
     }
 
-    if (planFeatures.aiIdeaGenerationLimit !== 'unlimited' && 
-        generationCount >= planFeatures.aiIdeaGenerationLimit) {
-      setError(`You've reached your limit of ${planFeatures.aiIdeaGenerationLimit} idea generations. Upgrade your plan for unlimited generations.`);
+    if (generationLimit !== 'unlimited' && generationCount >= generationLimit) {
+      setError(`You've reached your limit of ${generationLimit} idea generations. Upgrade your plan for unlimited generations.`);
       return;
     }
 
@@ -126,7 +133,7 @@ const HowItWorksWizard: React.FC = () => {
     }
     
     if (currentStep === 2) {
-      await generateIdeas();
+      await handleGenerate();
     } else if (currentStep === 3 && favoriteIdeas.length === 0) {
       setError('Please select at least one idea to continue.');
       return;
@@ -192,9 +199,9 @@ const HowItWorksWizard: React.FC = () => {
             <h3 className="text-2xl font-bold text-gray-900">Generate Ideas</h3>
             <p className="text-gray-600">
               Our AI will analyze your interests and generate personalized startup ideas.
-              {planFeatures.aiIdeaGenerationLimit !== 'unlimited' && (
+              {generationLimit !== 'unlimited' && (
                 <span className="block mt-2 text-sm text-gray-500">
-                  You have {planFeatures.aiIdeaGenerationLimit - generationCount} generations remaining.
+                  You have {generationLimit - generationCount} generations remaining.
                 </span>
               )}
             </p>
@@ -207,8 +214,8 @@ const HowItWorksWizard: React.FC = () => {
             
             <div className="flex justify-center py-12">
               <button
-                onClick={generateIdeas}
-                disabled={isGenerating || (!user && planFeatures.aiIdeaGenerationLimit === 0)}
+                onClick={handleGenerate}
+                disabled={isGenerating || (generationLimit !== 'unlimited' && generationCount >= generationLimit)}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
                 {isGenerating ? (

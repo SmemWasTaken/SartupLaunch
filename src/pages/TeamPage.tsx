@@ -11,7 +11,7 @@ const TeamPage: React.FC = () => {
   const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
   const { team, userTeams, isLoading, error, createTeam, updateTeamSettings, inviteMember, removeMember, loadActivities } = useTeam(teamId);
-  const { planFeatures } = usePlanFeatures();
+  const { hasFeature } = usePlanFeatures();
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
@@ -23,7 +23,7 @@ const TeamPage: React.FC = () => {
     return null;
   }
 
-  if (!planFeatures.hasTeamManagement) {
+  if (!hasFeature('team')) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">

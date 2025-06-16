@@ -27,7 +27,7 @@ import {
 export default function SupportPage() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { features } = usePlanFeatures();
+  const { hasFeature } = usePlanFeatures();
   const {
     tickets,
     articles,
@@ -82,6 +82,8 @@ export default function SupportPage() {
         category: newTicketCategory,
         priority: newTicketPriority,
         status: 'open',
+        userId: user?.id || '',
+        userName: user?.name || '',
       });
 
       setShowNewTicketForm(false);

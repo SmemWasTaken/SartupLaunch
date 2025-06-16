@@ -16,31 +16,30 @@ const PLAN_FEATURES: Record<string, Feature[]> = {
   enterprise: ['analytics', 'team', 'api', 'priority_support', 'custom_domains', 'advanced_analytics', 'team_members', 'api_access']
 };
 
-export function usePlanFeatures() {
+export const usePlanFeatures = () => {
   const { user } = useUser();
+  const currentPlan = user?.plan || 'free';
+  const planFeatures = PLAN_FEATURES[currentPlan] || [];
 
   const hasFeature = (feature: Feature): boolean => {
-    if (!user) return false;
-    const features = PLAN_FEATURES[user.plan] || [];
-    return features.includes(feature);
+    return planFeatures.includes(feature);
   };
 
   const getAvailableFeatures = (): Feature[] => {
-    if (!user) return [];
-    return PLAN_FEATURES[user.plan] || [];
+    return planFeatures;
   };
 
   const getUpgradeFeatures = (): Feature[] => {
-    if (!user) return [];
-    const currentPlan = user.plan;
-    const currentFeatures = PLAN_FEATURES[currentPlan] || [];
     const allFeatures = Object.values(PLAN_FEATURES).flat();
-    return allFeatures.filter(feature => !currentFeatures.includes(feature));
+    const currentFeatures = new Set(planFeatures);
+    return allFeatures.filter(feature => !currentFeatures.has(feature));
   };
 
   return {
     hasFeature,
     getAvailableFeatures,
-    getUpgradeFeatures
+    getUpgradeFeatures,
+    planFeatures,
+    currentPlan
   };
-} 
+}; 

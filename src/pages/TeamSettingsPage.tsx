@@ -10,7 +10,7 @@ const TeamSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
   const { team, isLoading, error, updateTeamSettings, deleteTeam } = useTeam(teamId);
-  const { planFeatures } = usePlanFeatures();
+  const { hasFeature } = usePlanFeatures();
   const [teamName, setTeamName] = useState(team?.name || '');
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -20,7 +20,7 @@ const TeamSettingsPage: React.FC = () => {
     return null;
   }
 
-  if (!planFeatures.hasTeamManagement) {
+  if (!hasFeature('team')) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">

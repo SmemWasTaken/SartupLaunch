@@ -7,7 +7,7 @@ import { CreditCard, Package, Zap } from 'lucide-react';
 const BillingPage: React.FC = () => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const { currentPlan, features } = usePlanFeatures();
+  const { currentPlan } = usePlanFeatures();
 
   if (!user) {
     navigate('/login');
@@ -61,10 +61,10 @@ const BillingPage: React.FC = () => {
           <div>
             <p className="text-lg font-medium text-gray-900">{currentPlan}</p>
             <p className="text-sm text-gray-500">
-              {currentPlan === 'Free' ? 'No subscription' : 'Active subscription'}
+              {currentPlan === 'free' ? 'No subscription' : 'Active subscription'}
             </p>
           </div>
-          {currentPlan !== 'Free' && (
+          {currentPlan !== 'free' && (
             <button
               type="button"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -163,7 +163,7 @@ const BillingPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {currentPlan === 'Free' ? (
+              {currentPlan === 'free' ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
                     No payment history available
