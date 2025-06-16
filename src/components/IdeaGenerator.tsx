@@ -18,8 +18,8 @@ interface GeneratedIdea {
 }
 
 export const IdeaGenerator: React.FC = () => {
-  const { user } = useUser();
-  const { generateIdeas, saveIdea, isLoading } = useIdeas();
+  const { user, isSignedIn } = useUser();
+  const { generateIdeas, saveIdea, toggleFavorite, isLoading, ideas } = useIdeas();
   const [formData, setFormData] = useState({
     interests: '',
     skills: '',
@@ -31,6 +31,7 @@ export const IdeaGenerator: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generationCount, setGenerationCount] = useState(0);
+  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
 
   const industries = [
     'Any', 'Technology', 'Healthcare', 'Education', 'Finance', 'E-commerce',
@@ -308,72 +309,92 @@ export const IdeaGenerator: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {generatedIdeas.map((idea, index) => (
-              <div key={index} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <h4 className="text-xl font-bold text-gray-900 flex-1">
-                      {idea.title}
-                    </h4>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(idea.difficulty)}`}>
-                      {idea.difficulty}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-600 leading-relaxed">
-                    {idea.description}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-green-600" />
-                      <span className="text-gray-700">
-                        <span className="font-medium">Revenue:</span> {idea.revenueEstimate}
+            {generatedIdeas.map((idea, index) => {
+              // Check if this idea is already saved
+              const savedIdea = ideas.find(i => i.title === idea.title && i.description === idea.description);
+              const isFavorite = savedIdea?.isFavorite;
+              return (
+                <div key={index} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <h4 className="text-xl font-bold text-gray-900 flex-1">
+                        {idea.title}
+                      </h4>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(idea.difficulty)}`}>
+                        {idea.difficulty}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-blue-600" />
-                      <span className="text-gray-700">
-                        <span className="font-medium">Launch:</span> {idea.timeToLaunch}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {idea.tags.map((tag, tagIndex) => (
-                      <span
-                        key={tagIndex}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg"
+                    <p className="text-gray-600 leading-relaxed">
+                      {idea.description}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="w-4 h-4 text-green-600" />
+                        <span className="text-gray-700">
+                          <span className="font-medium">Revenue:</span> {idea.revenueEstimate}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                        <span className="text-gray-700">
+                          <span className="font-medium">Launch:</span> {idea.timeToLaunch}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {idea.tags.map((tag, tagIndex) => (
+                        <span
+                          key={tagIndex}
+                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex items-center space-x-2">
+                        {isSignedIn && (
+                          <button
+                            aria-label={isFavorite ? 'Unfavorite' : 'Favorite'}
+                            className="p-2 rounded-full focus:outline-none"
+                            disabled={favoriteLoading === idea.title}
+                            onClick={async () => {
+                              setFavoriteLoading(idea.title);
+                              if (!savedIdea) {
+                                await saveIdea({ ...idea, isFavorite: true });
+                              } else {
+                                await toggleFavorite(savedIdea.id);
+                              }
+                              setFavoriteLoading(null);
+                            }}
+                          >
+                            <Heart className={`w-4 h-4 transition-colors duration-200 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                          </button>
+                        )}
+                        <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors duration-200">
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                        <button className="p-2 text-gray-400 hover:text-green-500 transition-colors duration-200">
+                          <Download className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <button
+                        id="claim-button"
+                        onClick={() => handleSaveIdea(idea)}
+                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
                       >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-400 hover:text-red-500 transition-colors duration-200">
-                        <Heart className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors duration-200">
-                        <Share2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-green-500 transition-colors duration-200">
-                        <Download className="w-4 h-4" />
+                        Save Idea
                       </button>
                     </div>
-
-                    <button
-                      id="claim-button"
-                      onClick={() => handleSaveIdea(idea)}
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                    >
-                      Save Idea
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
