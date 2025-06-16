@@ -19,7 +19,8 @@ import {
   Shield,
   Globe,
   Settings,
-  Infinity
+  Infinity,
+  LogOut
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useIdeas } from '../hooks/useIdeas';
@@ -30,9 +31,11 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { OnboardingTour } from '../components/OnboardingTour';
 import { UpgradePrompt } from '../components/UpgradePrompt';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
+import { motion } from 'framer-motion';
 
-export const DashboardPage: React.FC = () => {
-  const { user, isLoaded, isSignedIn } = useUser();
+const DashboardPage: React.FC = () => {
+  const { user, isLoaded, isSignedIn, logout } = useUser();
   const { ideas, isLoading: ideasLoading, toggleFavorite } = useIdeas();
   const { templates } = useTemplates();
   const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
@@ -166,6 +169,15 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
+
   if (ideasLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -175,294 +187,123 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div id="dashboard-header" className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <div>
-          <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {user?.fullName || user?.username || 'User'}!
-            </h1>
-            <div className={`inline-flex items-center space-x-2 bg-gradient-to-r ${getPlanColor()} text-white px-3 py-1 rounded-full text-sm font-medium`}>
-              {getPlanIcon()}
-              <span>{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
-            </div>
-          </div>
-          <p className="text-gray-600">
-            Here's what's happening with your startup journey
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={handleTourClick}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200 flex items-center space-x-2"
-          >
-            <Play className="w-4 h-4" />
-            <span>Take Tour</span>
-          </button>
-          <Link
-            to="/dashboard/generate"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-xl transition-colors duration-200 flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Generate Ideas</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Plan Benefits Banner */}
-      {plan !== 'starter' && (
-        <div className={`bg-gradient-to-r ${getPlanColor()} rounded-2xl p-6 text-white`}>
-          <div className="flex items-center justify-between">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold mb-2">
-                {plan === 'pro' ? 'Pro Plan Benefits' : 'Enterprise Plan Benefits'}
-              </h3>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Infinity className="w-4 h-4" />
-                  <span>Unlimited Ideas</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{features.templatesAccess === 'all' ? 'All Templates' : 'Premium Templates'}</span>
-                </div>
-                {hasFeature('teamMembers') && features.teamMembers > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4" />
-                    <span>{features.teamMembers === -1 ? 'Unlimited Team' : `${features.teamMembers} Team Members`}</span>
-                  </div>
-                )}
-                {hasFeature('apiAccess') && (
-                  <div className="flex items-center space-x-2">
-                    <Globe className="w-4 h-4" />
-                    <span>API Access</span>
-                  </div>
-                )}
-              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-500">Welcome back, {user?.fullName || user?.username || 'User'}</p>
             </div>
-            {plan === 'starter' && (
-              <Link
-                to="/pricing"
-                className="bg-white text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/how-it-works')}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
               >
-                Upgrade
-              </Link>
-            )}
+                <Zap className="w-4 h-4 mr-2" />
+                Generate Ideas
+              </button>
+              <button
+                onClick={() => navigate('/settings')}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
-      )}
+      </header>
 
-      {/* Upgrade Prompt for Starter Users */}
-      {plan === 'starter' && showUpgradePrompt && (
-        <UpgradePrompt
-          currentPlan={plan}
-          feature="Advanced Features"
-          onClose={() => setShowUpgradePrompt(false)}
-        />
-      )}
-
-      {/* Stats Grid */}
-      <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          stat.label === 'Favorites' ? (
-            <Link
-              key={index}
-              to="/dashboard/favorites"
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200 block"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                </div>
-              </div>
-            </Link>
-          ) : (
-            <div
-              key={index}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                </div>
-              </div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-xl p-6 shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Current Plan</h3>
+              <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                {plan.charAt(0).toUpperCase() + plan.slice(1)}
+              </span>
             </div>
-          )
-        ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
-            <Link
-              key={index}
-              to={action.href}
-              className={`${action.color} text-white p-6 rounded-xl transition-all duration-200 hover:scale-105 group`}
+            <button
+              onClick={() => navigate('/pricing')}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
-              <div className="flex items-center space-x-4">
-                <action.icon className="w-8 h-8" />
-                <div>
-                  <h3 className="font-semibold">{action.title}</h3>
-                  <p className="text-sm opacity-90">{action.description}</p>
-                </div>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+              View Plan Details →
+            </button>
+          </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Ideas */}
-        <div id="recent-ideas" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Recent Ideas</h2>
-            <Link
-              to="/dashboard/ideas"
-              className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
-            >
-              View all
-            </Link>
-          </div>
-          
-          {recentIdeas.length > 0 ? (
-            <div className="space-y-4">
-              {recentIdeas.map((idea) => (
-                <div
-                  key={idea.id}
-                  className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-sm">
-                      {idea.title}
-                    </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      idea.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                      idea.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {idea.difficulty}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                    {idea.description}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{idea.timeToLaunch}</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <TrendingUp className="w-3 h-3" />
-                      <span>{idea.category}</span>
-                    </span>
-                    <button
-                      aria-label={idea.isFavorite ? 'Unfavorite' : 'Favorite'}
-                      className="ml-2 p-1 rounded-full focus:outline-none"
-                      disabled={favoriteLoading === idea.id}
-                      onClick={async () => {
-                        setFavoriteLoading(idea.id);
-                        await toggleFavorite(idea.id);
-                        setFavoriteLoading(null);
-                      }}
-                    >
-                      <Heart className={`w-5 h-5 transition-colors duration-200 ${idea.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-xl p-6 shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Quick Actions</h3>
+              <Star className="w-5 h-5 text-yellow-500" />
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No ideas generated yet</p>
-              <Link
-                to="/dashboard/generate"
-                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+            <div className="space-y-2">
+              <button
+                onClick={() => navigate('/how-it-works')}
+                className="block w-full text-left text-sm text-gray-600 hover:text-gray-900"
               >
-                Generate Your First Idea
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Onboarding Progress */}
-        <div className="space-y-6">
-          <OnboardingChecklist compact={true} />
-          
-          {/* Purchased Templates */}
-          <div id="templates-section" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Your Templates</h2>
-              <Link
-                to="/templates"
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
+                Generate New Ideas
+              </button>
+              <button
+                onClick={() => navigate('/favorites')}
+                className="block w-full text-left text-sm text-gray-600 hover:text-gray-900"
               >
-                Browse more
-              </Link>
+                View Favorite Ideas
+              </button>
             </div>
-            
-            {purchasedTemplates.length > 0 ? (
-              <div className="space-y-4">
-                {purchasedTemplates.slice(0, 3).map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex items-center space-x-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <img
-                      src={template.thumbnailUrl}
-                      alt={template.title}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm truncate">
-                        {template.title}
-                      </h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">
-                          {template.category}
-                        </span>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-500">{template.rating}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <button className="bg-green-50 hover:bg-green-100 text-green-700 p-2 rounded-lg transition-colors duration-200">
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No templates purchased yet</p>
-                <Link
-                  to="/templates"
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
-                >
-                  Browse Templates
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+          </motion.div>
 
-      {/* Onboarding Tour Component */}
-      <OnboardingTour />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl p-6 shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Account</h3>
+              <Settings className="w-5 h-5 text-gray-500" />
+            </div>
+            <div className="space-y-2">
+              <button
+                onClick={() => navigate('/settings')}
+                className="block w-full text-left text-sm text-gray-600 hover:text-gray-900"
+              >
+                Account Settings
+              </button>
+              <button
+                onClick={() => navigate('/billing')}
+                className="block w-full text-left text-sm text-gray-600 hover:text-gray-900"
+              >
+                Billing & Subscription
+              </button>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Analytics Dashboard */}
+        <AnalyticsDashboard />
+      </main>
     </div>
   );
 };
+
+export default DashboardPage;

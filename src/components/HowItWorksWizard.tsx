@@ -3,21 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Heart, Loader2, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import { aiService } from '../services/aiService';
+import { analyticsService } from '../services/analyticsService';
+import { GeneratedIdea } from '../types/idea';
+import { usePlanFeatures } from '../hooks/usePlanFeatures';
+import { useFavorites } from '../hooks/useFavorites';
 
 interface Interest {
   id: string;
   label: string;
   category: string;
-}
-
-interface GeneratedIdea {
-  id: string;
-  title: string;
-  description: string;
-  marketSize: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  timeToLaunch: string;
-  isFavorite: boolean;
 }
 
 const interests: Interest[] = [
@@ -36,12 +31,15 @@ const interests: Interest[] = [
 const HowItWorksWizard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+  const { planFeatures } = usePlanFeatures();
+  const { toggleFavorite, isFavorite } = useFavorites();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedIdeas, setGeneratedIdeas] = useState<GeneratedIdea[]>([]);
   const [favoriteIdeas, setFavoriteIdeas] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [generationCount, setGenerationCount] = useState(0);
 
   // Load saved state from localStorage
   useEffect(() => {
@@ -74,67 +72,51 @@ const HowItWorksWizard: React.FC = () => {
   };
 
   const generateIdeas = async () => {
+    if (!user) {
+      navigate('/signup', { state: { from: 'how-it-works' } });
+      return;
+    }
+
+    if (planFeatures.aiIdeaGenerationLimit !== 'unlimited' && 
+        generationCount >= planFeatures.aiIdeaGenerationLimit) {
+      setError(`You've reached your limit of ${planFeatures.aiIdeaGenerationLimit} idea generations. Upgrade your plan for unlimited generations.`);
+      return;
+    }
+
     setIsGenerating(true);
     setError(null);
     
     try {
-      // Simulate API call to generate ideas
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const ideas = await aiService.generateIdeas(
+        {
+          interests: selectedInterests,
+          userPreferences: {
+            preferredDifficulty: 'Medium',
+            preferredTimeToLaunch: '3-6 months',
+          }
+        },
+        user.id
+      );
       
-      const mockIdeas: GeneratedIdea[] = [
-        {
-          id: '1',
-          title: 'AI-Powered Content Creation Platform',
-          description: 'A platform that helps businesses create engaging content using AI, tailored to their brand voice and audience.',
-          marketSize: '$10B+',
-          difficulty: 'Medium',
-          timeToLaunch: '3-4 months',
-          isFavorite: false,
-        },
-        {
-          id: '2',
-          title: 'Sustainable E-commerce Marketplace',
-          description: 'A curated marketplace for eco-friendly products, with verified sustainability credentials and carbon footprint tracking.',
-          marketSize: '$5B+',
-          difficulty: 'Hard',
-          timeToLaunch: '6-8 months',
-          isFavorite: false,
-        },
-        {
-          id: '3',
-          title: 'Remote Team Collaboration Tool',
-          description: 'An all-in-one platform for remote teams to collaborate, manage projects, and maintain company culture.',
-          marketSize: '$8B+',
-          difficulty: 'Medium',
-          timeToLaunch: '4-5 months',
-          isFavorite: false,
-        },
-      ];
-      
-      setGeneratedIdeas(mockIdeas);
+      setGeneratedIdeas(ideas);
+      setGenerationCount(prev => prev + 1);
       setCurrentStep(3);
+
+      // Track analytics
+      analyticsService.trackIdeaGeneration(user.id, ideas);
+      analyticsService.trackInterestSelection(user.id, selectedInterests);
     } catch (error) {
       console.error('Failed to generate ideas:', error);
-      setError('Failed to generate ideas. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to generate ideas. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const toggleFavorite = (ideaId: string) => {
-    setFavoriteIdeas(prev => 
-      prev.includes(ideaId)
-        ? prev.filter(id => id !== ideaId)
-        : [...prev, ideaId]
-    );
-    
-    setGeneratedIdeas(prev =>
-      prev.map(idea =>
-        idea.id === ideaId
-          ? { ...idea, isFavorite: !idea.isFavorite }
-          : idea
-      )
-    );
+  const handleToggleFavorite = (idea: GeneratedIdea) => {
+    if (!user) return;
+    toggleFavorite(idea);
+    analyticsService.trackIdeaFavorite(user.id, idea, !isFavorite(idea.id));
   };
 
   const handleNext = async () => {
@@ -208,18 +190,36 @@ const HowItWorksWizard: React.FC = () => {
             className="space-y-6"
           >
             <h3 className="text-2xl font-bold text-gray-900">Generate Ideas</h3>
-            <p className="text-gray-600">Our AI will analyze your interests and generate personalized startup ideas.</p>
+            <p className="text-gray-600">
+              Our AI will analyze your interests and generate personalized startup ideas.
+              {planFeatures.aiIdeaGenerationLimit !== 'unlimited' && (
+                <span className="block mt-2 text-sm text-gray-500">
+                  You have {planFeatures.aiIdeaGenerationLimit - generationCount} generations remaining.
+                </span>
+              )}
+            </p>
+            
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                {error}
+              </div>
+            )}
             
             <div className="flex justify-center py-12">
               <button
                 onClick={generateIdeas}
-                disabled={isGenerating}
+                disabled={isGenerating || (!user && planFeatures.aiIdeaGenerationLimit === 0)}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Generating Ideas...</span>
+                  </>
+                ) : !user ? (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    <span>Sign Up to Generate Ideas</span>
                   </>
                 ) : (
                   <>
@@ -260,14 +260,14 @@ const HowItWorksWizard: React.FC = () => {
                       </div>
                     </div>
                     <button
-                      onClick={() => toggleFavorite(idea.id)}
+                      onClick={() => handleToggleFavorite(idea)}
                       className={`p-2 rounded-full transition-colors ${
-                        idea.isFavorite
+                        isFavorite(idea.id)
                           ? 'text-red-500 hover:text-red-600'
                           : 'text-gray-400 hover:text-red-500'
                       }`}
                     >
-                      <Heart className="w-6 h-6" fill={idea.isFavorite ? 'currentColor' : 'none'} />
+                      <Heart className="w-6 h-6" fill={isFavorite(idea.id) ? 'currentColor' : 'none'} />
                     </button>
                   </div>
                 </div>

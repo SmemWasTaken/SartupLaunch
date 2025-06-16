@@ -1,78 +1,63 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useUser as useClerkUser } from '@clerk/clerk-react';
-import { PLAN_FEATURES, PlanName, PlanFeatures } from '../config/planFeatures';
-
-interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  plan: PlanName;
-}
+import { User, Plan } from '@/types/user';
 
 interface UserContextType {
   user: User | null;
+  setUser: (user: User | null) => void;
   isLoading: boolean;
   error: Error | null;
-  planFeatures: PlanFeatures | null;
 }
 
-const UserContext = createContext<UserContextType>({
-  user: null,
-  isLoading: true,
-  error: null,
-  planFeatures: null,
-});
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const useUser = () => useContext(UserContext);
-
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user: clerkUser, isLoaded: isClerkLoaded } = useClerkUser();
+export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [planFeatures, setPlanFeatures] = useState<PlanFeatures | null>(null);
 
   useEffect(() => {
-    const loadUser = async () => {
+    // Load user from localStorage on mount
+    const loadUser = () => {
       try {
-        if (!isClerkLoaded) {
-          return;
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
-
-        if (!clerkUser) {
-          setUser(null);
-          setPlanFeatures(null);
-          setIsLoading(false);
-          return;
-        }
-
-        // In a real app, fetch the user's plan from your backend
-        // For now, we'll use 'basic' as the default
-        const plan: PlanName = 'basic';
-        const mockUser: User = {
-          id: clerkUser.id,
-          email: clerkUser.emailAddresses[0]?.emailAddress || '',
-          firstName: clerkUser.firstName || undefined,
-          lastName: clerkUser.lastName || undefined,
-          plan,
-        };
-
-        setUser(mockUser);
-        setPlanFeatures(PLAN_FEATURES[plan]);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to load user data'));
+        setError(err instanceof Error ? err : new Error('Failed to load user'));
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUser();
-  }, [clerkUser, isClerkLoaded]);
+  }, []);
 
-  return (
-    <UserContext.Provider value={{ user, isLoading, error, planFeatures }}>
-      {children}
-    </UserContext.Provider>
-  );
-}; 
+  // Save user to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
+
+  const value = {
+    user,
+    setUser,
+    isLoading,
+    error,
+  };
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+}
+
+export function useUser() {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+}
+
+export type { UserContextType }; 

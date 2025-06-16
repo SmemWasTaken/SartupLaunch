@@ -1,82 +1,92 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useIdeas } from '../hooks/useIdeas';
-import { Clock, TrendingUp, Lightbulb, ArrowLeft, Heart } from 'lucide-react';
+import React from 'react';
+import { useUser } from '../contexts/UserContext';
+import { useNavigate } from 'react-router-dom';
+import { Heart, ArrowLeft } from 'lucide-react';
+import { useFavorites } from '../hooks/useFavorites';
 
 const FavoritesPage: React.FC = () => {
-  const { ideas, isLoading, toggleFavorite } = useIdeas();
-  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
-  const favoriteIdeas = ideas.filter(idea => idea.isFavorite);
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const { favorites, isLoading, removeFavorite } = useFavorites();
+
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">My Favorite Ideas</h1>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate(-1)}
+                className="mr-4 p-2 rounded-full hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-6 w-6 text-gray-500" />
+              </button>
+              <h1 className="text-3xl font-bold text-gray-900">Favorites</h1>
+            </div>
+          </div>
         </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         {isLoading ? (
-          <div className="text-center py-12">Loading ideas...</div>
-        ) : favoriteIdeas.length === 0 ? (
           <div className="text-center py-12">
-            <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">No favorite ideas yet</p>
-            <Link
-              to="/dashboard/generate"
-              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
-            >
-              Generate Your First Idea
-            </Link>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-sm text-gray-500">Loading favorites...</p>
+          </div>
+        ) : favorites.length === 0 ? (
+          <div className="text-center py-12">
+            <Heart className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No favorites yet</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Start generating ideas and add them to your favorites to see them here.
+            </p>
+            <div className="mt-6">
+              <button
+                onClick={() => navigate('/generate')}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Generate Ideas
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favoriteIdeas.map((idea) => (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {favorites.map((idea) => (
               <div
                 key={idea.id}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200"
+                className="bg-white overflow-hidden shadow rounded-lg"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-gray-900">{idea.title}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    idea.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                    idea.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {idea.difficulty}
-                  </span>
-                </div>
-                <p className="text-gray-600 text-sm line-clamp-2 mb-3">{idea.description}</p>
-                <div className="flex items-center space-x-2 text-xs text-gray-500 mb-2">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>{idea.category}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-xs text-gray-500">
-                  <Clock className="w-3 h-3" />
-                  <span>{new Date(idea.createdAt).toLocaleDateString()}</span>
-                  <button
-                    aria-label={idea.isFavorite ? 'Unfavorite' : 'Favorite'}
-                    className="ml-2 p-1 rounded-full focus:outline-none"
-                    disabled={favoriteLoading === idea.id}
-                    onClick={async () => {
-                      setFavoriteLoading(idea.id);
-                      await toggleFavorite(idea.id);
-                      setFavoriteLoading(null);
-                    }}
-                  >
-                    <Heart className={`w-5 h-5 transition-colors duration-200 ${idea.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
-                  </button>
+                <div className="p-6">
+                  <h3 className="text-lg font-medium text-gray-900">{idea.title}</h3>
+                  <p className="mt-2 text-sm text-gray-500">{idea.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {idea.difficulty}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {idea.marketSize}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => removeFavorite(idea.id)}
+                      className="text-red-500 hover:text-red-600"
+                      aria-label="Remove from favorites"
+                    >
+                      <Heart className="h-5 w-5 fill-current" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };
