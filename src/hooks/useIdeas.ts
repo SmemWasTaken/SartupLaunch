@@ -89,7 +89,7 @@ export const useIdeas = (): UseIdeasReturn => {
 
     setIsLoading(true);
     try {
-      const openAI = new OpenAIService(apiKey);
+      const openAI = new OpenAIService(import.meta.env.VITE_OPENAI_API_KEY || "dummy_key");
       const generatedIdeas = await openAI.generateStartupIdeas(params);
 
       const newIdeas: StartupIdea[] = generatedIdeas.map(idea => ({
