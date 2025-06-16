@@ -53,6 +53,18 @@ export const Header: React.FC = () => {
                 {item.name}
               </Link>
             ))}
+            <SignedIn>
+              <Link
+                to="/dashboard"
+                className={`text-sm font-medium transition-colors duration-200 hover:text-primary-600 ${
+                  isActivePath('/dashboard')
+                    ? 'text-primary-600 border-b-2 border-primary-600 pb-1'
+                    : 'text-gray-700'
+                }`}
+              >
+                Dashboard
+              </Link>
+            </SignedIn>
           </nav>
 
           {/* Desktop Actions */}
@@ -104,7 +116,17 @@ export const Header: React.FC = () => {
                 {item.name}
               </Link>
             ))}
-            
+            <SignedIn>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block py-2 text-sm font-medium transition-colors duration-200 ${
+                  isActivePath('/dashboard') ? 'text-primary-600' : 'text-gray-700'
+                }`}
+              >
+                Dashboard
+              </Link>
+            </SignedIn>
             <Link
               to="/login"
               onClick={() => setIsMenuOpen(false)}

@@ -4,8 +4,10 @@ import { ArrowRight, Lightbulb, Zap, Users, TrendingUp, Star, CheckCircle, Rocke
 import { IdeaGenerator } from '../components/IdeaGenerator';
 import { getMockStats, getMockTestimonials } from '../utils/mockData';
 import { trackButtonClick } from '../utils/analytics';
+import { useUser } from '@clerk/clerk-react';
 
 export const HomePage: React.FC = () => {
+  const { isSignedIn } = useUser();
   const stats = getMockStats();
   const testimonials = getMockTestimonials();
 
@@ -61,7 +63,7 @@ export const HomePage: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                to="/signup"
+                to={isSignedIn ? "/dashboard" : "/signup"}
                 onClick={() => handleCTAClick('get_started')}
                 className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 group"
               >
