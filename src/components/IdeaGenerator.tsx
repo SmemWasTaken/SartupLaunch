@@ -178,6 +178,35 @@ export const IdeaGenerator: React.FC = () => {
     }
   };
 
+  const handleFavoriteIdea = async (idea: GeneratedIdea) => {
+    setError(null);
+    setFavoriteLoading(idea.title);
+    try {
+      let saved = ideas.find(i => i.title === idea.title && i.description === idea.description);
+      if (!saved) {
+        await saveIdea({
+          title: idea.title,
+          description: idea.description,
+          category: idea.category,
+          difficulty: idea.difficulty,
+          timeToLaunch: idea.timeToLaunch,
+          revenueEstimate: idea.revenueEstimate,
+          marketSize: idea.marketSize,
+          tags: idea.tags,
+          isFavorite: true,
+        });
+        // Refresh ideas list to get the new saved idea
+        saved = ideas.find(i => i.title === idea.title && i.description === idea.description);
+      }
+      if (saved) {
+        await toggleFavorite(saved.id);
+      }
+    } catch (err) {
+      setError('Failed to favorite idea');
+    }
+    setFavoriteLoading(null);
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy': return 'bg-green-100 text-green-800';
@@ -195,7 +224,7 @@ export const IdeaGenerator: React.FC = () => {
       {showUpgradePrompt && (
         <UpgradePrompt
           currentPlan={plan}
-          feature="Unlimited Idea Generation"
+          feature="advancedAnalytics"
           onClose={() => setShowUpgradePrompt(false)}
         />
       )}
@@ -426,13 +455,7 @@ export const IdeaGenerator: React.FC = () => {
                             className="p-2 rounded-full focus:outline-none"
                             disabled={favoriteLoading === idea.title}
                             onClick={async () => {
-                              setFavoriteLoading(idea.title);
-                              if (!savedIdea) {
-                                await saveIdea({ ...idea, isFavorite: true });
-                              } else {
-                                await toggleFavorite(savedIdea.id);
-                              }
-                              setFavoriteLoading(null);
+                              await handleFavoriteIdea(idea);
                             }}
                           >
                             <Heart className={`w-4 h-4 transition-colors duration-200 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />

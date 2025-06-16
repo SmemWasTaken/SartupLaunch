@@ -76,3 +76,24 @@ export interface ApiResponse<T> {
   error?: string;
   success: boolean;
 }
+
+export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise';
+
+export interface SubscriptionFeatures {
+  templatesAccess: 'basic' | 'premium' | 'all';
+  teamMembers: number;
+  apiAccess: boolean;
+  advancedAnalytics: boolean;
+  legalDocuments: boolean;
+  financialTools: boolean;
+  businessCanvas: boolean;
+  marketingTools: boolean;
+  pitchDeckBuilder: boolean;
+}
+
+export interface Subscription {
+  plan: SubscriptionPlan;
+  features: SubscriptionFeatures;
+  status: 'active' | 'canceled' | 'past_due';
+  currentPeriodEnd: string;
+}

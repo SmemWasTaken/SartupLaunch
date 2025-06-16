@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Lightbulb, 
-  ShoppingBag, 
   TrendingUp, 
-  Clock, 
-  Star, 
-  Plus, 
-  ArrowRight,
+  Users, 
+  FileText, 
+  DollarSign,
+  ArrowUpRight,
+  Clock,
+  CheckCircle,
+  Lightbulb,
   Heart,
   Download,
-  BarChart3,
   Target,
-  Play,
+  Calculator,
+  Layout,
+  Megaphone,
+  Scale,
+  ShoppingBag,
+  BarChart3,
   Crown,
-  Users,
-  Zap,
   Shield,
-  Globe,
-  Settings,
-  Infinity
+  Zap,
+  LucideIcon
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useIdeas } from '../hooks/useIdeas';
@@ -27,18 +29,34 @@ import { useTemplates } from '../hooks/useTemplates';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { useSubscription } from '../hooks/useSubscription';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import OnboardingChecklist from '../components/OnboardingChecklist';
 import { OnboardingTour } from '../components/OnboardingTour';
 import { UpgradePrompt } from '../components/UpgradePrompt';
+import { FinancialPlanning } from '../components/FinancialPlanning';
+import { PitchDeckBuilder } from '../components/PitchDeckBuilder';
+import { LegalDocuments } from '../components/LegalDocuments';
+import { SubscriptionFeatures, StartupIdea } from '../types';
+
+interface QuickAction {
+  id: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  feature?: keyof SubscriptionFeatures;
+  color: string;
+  available: boolean;
+  href?: string;
+}
 
 export const DashboardPage: React.FC = () => {
   const { user, isLoaded, isSignedIn } = useUser();
   const { ideas, isLoading: ideasLoading, toggleFavorite } = useIdeas();
   const { templates } = useTemplates();
   const { getCompletedStepsCount, getTotalStepsCount } = useOnboarding();
-  const { plan, features, hasFeature } = useSubscription();
-  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+  const { plan, features, hasFeature, subscription } = useSubscription();
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<keyof SubscriptionFeatures | null>(null);
+  const [showMarketModal, setShowMarketModal] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<StartupIdea | null>(null);
   const navigate = useNavigate();
 
   if (!isLoaded) {
@@ -51,118 +69,124 @@ export const DashboardPage: React.FC = () => {
 
   const stats = [
     {
-      label: 'Ideas Generated',
-      value: ideas.length,
+      title: 'Ideas Generated',
+      value: ideas.length.toString(),
+      change: '+12%',
       icon: Lightbulb,
-      color: 'text-primary-600',
-      bgColor: 'bg-primary-50',
+      color: 'text-blue-600'
     },
     {
-      label: 'Favorites',
-      value: favoriteIdeas.length,
+      title: 'Favorites',
+      value: favoriteIdeas.length.toString(),
+      change: '+1',
       icon: Heart,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
+      color: 'text-emerald-600'
     },
     {
-      label: 'Templates Owned',
-      value: purchasedTemplates.length,
+      title: 'Templates Owned',
+      value: purchasedTemplates.length.toString(),
+      change: '+25%',
       icon: Download,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-purple-600'
     },
     {
-      label: 'Progress',
+      title: 'Progress',
       value: `${Math.round((getCompletedStepsCount() / getTotalStepsCount()) * 100)}%`,
+      change: '+5%',
       icon: Target,
-      color: 'text-accent-600',
-      bgColor: 'bg-accent-50',
-    },
+      color: 'text-green-600'
+    }
   ];
 
-  const getQuickActions = () => {
-    const baseActions = [
-      {
-        title: 'Generate New Ideas',
-        description: 'Create personalized startup ideas with AI',
-        icon: Lightbulb,
-        href: '/dashboard/generate',
-        color: 'bg-primary-600 hover:bg-primary-700',
-        available: true,
-      },
-      {
-        title: 'Browse Templates',
-        description: 'Explore professional business templates',
-        icon: ShoppingBag,
-        href: '/templates',
-        color: 'bg-accent-600 hover:bg-accent-700',
-        available: true,
-      },
-    ];
+  const recentActivity = [
+    { id: 1, action: 'Generated New Idea', time: '2 hours ago', status: 'completed' },
+    { id: 2, action: 'Updated Financial Model', time: '4 hours ago', status: 'completed' },
+    { id: 3, action: 'Created Marketing Campaign', time: '1 day ago', status: 'pending' },
+    { id: 4, action: 'Exported Business Canvas', time: '2 days ago', status: 'completed' }
+  ];
 
-    if (hasFeature('advancedAnalytics')) {
-      baseActions.push({
-        title: 'View Analytics',
-        description: 'Track your startup progress',
-        icon: BarChart3,
-        href: '/dashboard/analytics',
-        color: 'bg-green-600 hover:bg-green-700',
-        available: true,
-      });
+  const quickActions: QuickAction[] = [
+    {
+      id: 'generate-ideas',
+      title: 'Generate New Ideas',
+      description: 'Create personalized startup ideas with AI',
+      icon: Lightbulb,
+      color: 'text-blue-600',
+      available: true,
+      href: '/dashboard/generate'
+    },
+    {
+      id: 'financial-planning',
+      title: 'Financial Planning',
+      description: 'Track your startup finances and metrics',
+      icon: Calculator,
+      feature: 'financialTools',
+      color: 'text-emerald-600',
+      available: hasFeature('financialTools'),
+      href: '/dashboard/financial'
+    },
+    {
+      id: 'pitch-deck',
+      title: 'Pitch Deck Builder',
+      description: 'Create professional pitch decks',
+      icon: FileText,
+      feature: 'pitchDeckBuilder',
+      color: 'text-purple-600',
+      available: hasFeature('pitchDeckBuilder'),
+      href: '/dashboard/pitch-deck'
+    },
+    {
+      id: 'market-analysis',
+      title: 'Market Analysis',
+      description: 'Analyze the market for your idea',
+      icon: BarChart3,
+      color: 'text-indigo-600',
+      available: true,
+      href: undefined
+    },
+    {
+      id: 'legal-documents',
+      title: 'Legal Documents',
+      description: 'Access legal templates and documents',
+      icon: Scale,
+      feature: 'legalDocuments',
+      color: 'text-green-600',
+      available: hasFeature('legalDocuments'),
+      href: '/dashboard/legal'
     }
+  ];
 
-    if (hasFeature('teamMembers') && features.teamMembers > 1) {
-      baseActions.push({
-        title: 'Team Management',
-        description: 'Manage your team members',
-        icon: Users,
-        href: '/dashboard/team',
-        color: 'bg-purple-600 hover:bg-purple-700',
-        available: true,
-      });
+  const handleQuickAction = (actionId: string) => {
+    if (actionId === 'market-analysis') {
+      setShowMarketModal(true);
+      return;
     }
+    const action = quickActions.find(a => a.id === actionId);
+    if (!action) return;
 
-    if (hasFeature('apiAccess')) {
-      baseActions.push({
-        title: 'API Access',
-        description: 'Integrate with your tools',
-        icon: Settings,
-        href: '/dashboard/api',
-        color: 'bg-gray-600 hover:bg-gray-700',
-        available: true,
-      });
+    if (action.href) {
+      navigate(action.href);
+    } else if (action.feature) {
+      if (hasFeature(action.feature)) {
+        setActiveFeature(action.feature);
+        setShowUpgradePrompt(false);
+      } else {
+        setActiveFeature(action.feature);
+        setShowUpgradePrompt(true);
+      }
     }
-
-    return baseActions;
   };
 
-  const quickActions = getQuickActions();
-
-  const handleTourClick = () => {
-    if ((window as any).showDashboardTour) {
-      (window as any).showDashboardTour();
-    }
-  };
-
-  const getPlanIcon = () => {
-    switch (plan) {
-      case 'pro':
-        return <Crown className="w-5 h-5" />;
-      case 'enterprise':
-        return <Shield className="w-5 h-5" />;
+  const renderFeature = (feature: keyof SubscriptionFeatures) => {
+    switch (feature) {
+      case 'financialTools':
+        return <FinancialPlanning />;
+      case 'pitchDeckBuilder':
+        return <PitchDeckBuilder />;
+      case 'legalDocuments':
+        return <LegalDocuments />;
       default:
-        return <Zap className="w-5 h-5" />;
-    }
-  };
-
-  const getPlanColor = () => {
-    switch (plan) {
-      case 'pro':
-        return 'from-blue-500 to-purple-600';
-      case 'enterprise':
-        return 'from-purple-500 to-pink-600';
-      default:
-        return 'from-gray-500 to-gray-600';
+        return null;
     }
   };
 
@@ -175,294 +199,168 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div id="dashboard-header" className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <div>
-          <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {user?.fullName || user?.username || 'User'}!
-            </h1>
-            <div className={`inline-flex items-center space-x-2 bg-gradient-to-r ${getPlanColor()} text-white px-3 py-1 rounded-full text-sm font-medium`}>
-              {getPlanIcon()}
-              <span>{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
-            </div>
-          </div>
-          <p className="text-gray-600">
-            Here's what's happening with your startup journey
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={handleTourClick}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200 flex items-center space-x-2"
-          >
-            <Play className="w-4 h-4" />
-            <span>Take Tour</span>
-          </button>
-          <Link
-            to="/dashboard/generate"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-xl transition-colors duration-200 flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Generate Ideas</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Plan Benefits Banner */}
-      {plan !== 'starter' && (
-        <div className={`bg-gradient-to-r ${getPlanColor()} rounded-2xl p-6 text-white`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">
-                {plan === 'pro' ? 'Pro Plan Benefits' : 'Enterprise Plan Benefits'}
-              </h3>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Infinity className="w-4 h-4" />
-                  <span>Unlimited Ideas</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{features.templatesAccess === 'all' ? 'All Templates' : 'Premium Templates'}</span>
-                </div>
-                {hasFeature('teamMembers') && features.teamMembers > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4" />
-                    <span>{features.teamMembers === -1 ? 'Unlimited Team' : `${features.teamMembers} Team Members`}</span>
-                  </div>
-                )}
-                {hasFeature('apiAccess') && (
-                  <div className="flex items-center space-x-2">
-                    <Globe className="w-4 h-4" />
-                    <span>API Access</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            {plan === 'starter' && (
-              <Link
-                to="/pricing"
-                className="bg-white text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
+    <div className="min-h-screen bg-gray-50">
+      <main className="py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Welcome Section */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white mb-8">
+            <h2 className="text-3xl font-bold mb-2">Welcome back, {user?.firstName || user?.username || 'Entrepreneur'}!</h2>
+            <p className="text-blue-100 text-lg mb-6">
+              Ready to accelerate your startup journey? Let's build something amazing today.
+            </p>
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => (window as any).showDashboardTour?.()}
+                className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
               >
-                Upgrade
+                Quick Start Guide
+              </button>
+              <Link
+                to="/help"
+                className="border border-blue-300 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-500 transition-colors"
+              >
+                Book a Call
               </Link>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Upgrade Prompt for Starter Users */}
-      {plan === 'starter' && showUpgradePrompt && (
-        <UpgradePrompt
-          currentPlan={plan}
-          feature="Advanced Features"
-          onClose={() => setShowUpgradePrompt(false)}
-        />
-      )}
-
-      {/* Stats Grid */}
-      <div id="stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          stat.label === 'Favorites' ? (
-            <Link
-              key={index}
-              to="/dashboard/favorites"
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200 block"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                </div>
-              </div>
-            </Link>
-          ) : (
-            <div
-              key={index}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                </div>
-              </div>
             </div>
-          )
-        ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
-            <Link
-              key={index}
-              to={action.href}
-              className={`${action.color} text-white p-6 rounded-xl transition-all duration-200 hover:scale-105 group`}
-            >
-              <div className="flex items-center space-x-4">
-                <action.icon className="w-8 h-8" />
-                <div>
-                  <h3 className="font-semibold">{action.title}</h3>
-                  <p className="text-sm opacity-90">{action.description}</p>
-                </div>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Ideas */}
-        <div id="recent-ideas" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Recent Ideas</h2>
-            <Link
-              to="/dashboard/ideas"
-              className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
-            >
-              View all
-            </Link>
           </div>
-          
-          {recentIdeas.length > 0 ? (
-            <div className="space-y-4">
-              {recentIdeas.map((idea) => (
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat, idx) => {
+              const Icon = stat.icon;
+              // Define navigation targets for each stat
+              let onClick = undefined;
+              let clickable = false;
+              if (stat.title === 'Ideas Generated') {
+                onClick = () => navigate('/dashboard/ideas');
+                clickable = true;
+              } else if (stat.title === 'Favorites') {
+                onClick = () => navigate('/dashboard/favorites');
+                clickable = true;
+              } else if (stat.title === 'Templates Owned') {
+                onClick = () => navigate('/templates');
+                clickable = true;
+              }
+              return (
                 <div
-                  key={idea.id}
-                  className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                  key={stat.title}
+                  className={`bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow ${clickable ? 'cursor-pointer hover:border-blue-400' : ''}`}
+                  onClick={onClick}
+                  tabIndex={clickable ? 0 : -1}
+                  role={clickable ? 'button' : undefined}
+                  aria-label={clickable ? `Go to ${stat.title}` : undefined}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-sm">
-                      {idea.title}
-                    </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      idea.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                      idea.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {idea.difficulty}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                    {idea.description}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{idea.timeToLaunch}</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <TrendingUp className="w-3 h-3" />
-                      <span>{idea.category}</span>
-                    </span>
-                    <button
-                      aria-label={idea.isFavorite ? 'Unfavorite' : 'Favorite'}
-                      className="ml-2 p-1 rounded-full focus:outline-none"
-                      disabled={favoriteLoading === idea.id}
-                      onClick={async () => {
-                        setFavoriteLoading(idea.id);
-                        await toggleFavorite(idea.id);
-                        setFavoriteLoading(null);
-                      }}
-                    >
-                      <Heart className={`w-5 h-5 transition-colors duration-200 ${idea.isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No ideas generated yet</p>
-              <Link
-                to="/dashboard/generate"
-                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
-              >
-                Generate Your First Idea
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Onboarding Progress */}
-        <div className="space-y-6">
-          <OnboardingChecklist compact={true} />
-          
-          {/* Purchased Templates */}
-          <div id="templates-section" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Your Templates</h2>
-              <Link
-                to="/templates"
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
-              >
-                Browse more
-              </Link>
-            </div>
-            
-            {purchasedTemplates.length > 0 ? (
-              <div className="space-y-4">
-                {purchasedTemplates.slice(0, 3).map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex items-center space-x-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <img
-                      src={template.thumbnailUrl}
-                      alt={template.title}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm truncate">
-                        {template.title}
-                      </h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">
-                          {template.category}
-                        </span>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-500">{template.rating}</span>
-                        </div>
-                      </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-2 rounded-lg bg-gray-50 ${stat.color}`}>
+                      <Icon className="w-6 h-6" />
                     </div>
-                    <button className="bg-green-50 hover:bg-green-100 text-green-700 p-2 rounded-lg transition-colors duration-200">
-                      <Download className="w-4 h-4" />
-                    </button>
+                    <span className="text-sm text-green-600 font-medium flex items-center">
+                      {stat.change}
+                      <ArrowUpRight className="w-4 h-4 ml-1" />
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+                  <p className="text-gray-600 text-sm">{stat.title}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h3>
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className={`p-2 rounded-full ${
+                      activity.status === 'completed' ? 'bg-green-100' : 'bg-yellow-100'
+                    }`}>
+                      {activity.status === 'completed' ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <Clock className="w-4 h-4 text-yellow-600" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{activity.action}</p>
+                      <p className="text-sm text-gray-500">{activity.time}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No templates purchased yet</p>
-                <Link
-                  to="/templates"
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
-                >
-                  Browse Templates
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+            </div>
 
-      {/* Onboarding Tour Component */}
-      <OnboardingTour />
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {quickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={() => handleQuickAction(action.id)}
+                    disabled={!action.available}
+                    className={`p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-${action.color.split('-')[1]}-300 hover:bg-${action.color.split('-')[1]}-50 transition-colors group ${
+                      !action.available ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <action.icon className={`w-8 h-8 text-gray-400 group-hover:${action.color} mx-auto mb-2`} />
+                    <p className={`text-sm font-medium text-gray-600 group-hover:${action.color}`}>
+                      {action.title}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Active Feature */}
+          {activeFeature && (
+            <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              {renderFeature(activeFeature)}
+            </div>
+          )}
+
+          {/* Upgrade Prompt */}
+          {showUpgradePrompt && activeFeature && (
+            <UpgradePrompt
+              currentPlan={subscription.plan}
+              feature={activeFeature}
+              onClose={() => setShowUpgradePrompt(false)}
+            />
+          )}
+
+          {/* Market Analysis Modal */}
+          {showMarketModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg relative">
+                <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowMarketModal(false)}>&times;</button>
+                <h2 className="text-xl font-bold mb-4">Select an Idea for Market Analysis</h2>
+                <ul className="space-y-2 mb-4">
+                  {ideas.length === 0 && <li className="text-gray-500">No ideas available.</li>}
+                  {ideas.map((idea) => (
+                    <li key={idea.id}>
+                      <button
+                        className={`w-full text-left px-4 py-2 rounded-lg border border-gray-200 hover:bg-blue-50 ${selectedIdea && selectedIdea.id === idea.id ? 'bg-blue-100' : ''}`}
+                        onClick={() => setSelectedIdea(idea)}
+                      >
+                        {idea.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {selectedIdea && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="font-semibold mb-2">Market Analysis for: {selectedIdea.title}</h3>
+                    <p className="text-gray-600">[Market analysis results will appear here. Integrate your analysis logic as needed.]</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };

@@ -1,81 +1,80 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-
-export type SubscriptionPlan = 'starter' | 'pro' | 'enterprise';
-
-interface SubscriptionFeatures {
-  maxIdeasPerMonth: number;
-  templatesAccess: 'basic' | 'premium' | 'all';
-  supportLevel: 'community' | 'email' | 'priority' | 'dedicated';
-  teamMembers: number;
-  apiAccess: boolean;
-  customBranding: boolean;
-  advancedAnalytics: boolean;
-  customIntegrations: boolean;
-  dedicatedManager: boolean;
-}
+import { SubscriptionPlan, SubscriptionFeatures } from '../types';
 
 export const useSubscription = () => {
   const { user, isLoaded } = useUser();
   const [plan, setPlan] = useState<SubscriptionPlan>('starter');
   const [features, setFeatures] = useState<SubscriptionFeatures>({
-    maxIdeasPerMonth: 2,
     templatesAccess: 'basic',
-    supportLevel: 'community',
     teamMembers: 1,
     apiAccess: false,
-    customBranding: false,
     advancedAnalytics: false,
-    customIntegrations: false,
-    dedicatedManager: false,
+    legalDocuments: false,
+    financialTools: false,
+    businessCanvas: false,
+    marketingTools: false,
+    pitchDeckBuilder: false,
   });
 
   useEffect(() => {
     if (isLoaded && user) {
       // Get plan from user metadata
-      const userPlan = (user.publicMetadata?.subscriptionPlan as SubscriptionPlan) || 'starter';
+      const userPlan = (user.unsafeMetadata?.subscriptionPlan as SubscriptionPlan) || 'starter';
       setPlan(userPlan);
-      setFeatures(getPlanFeatures(userPlan));
+      setFeatures(getFeaturesForPlan(userPlan));
     }
   }, [user, isLoaded]);
 
-  const getPlanFeatures = (planType: SubscriptionPlan): SubscriptionFeatures => {
-    switch (planType) {
+  const getFeaturesForPlan = (plan: SubscriptionPlan): SubscriptionFeatures => {
+    switch (plan) {
+      case 'starter':
+        return {
+          templatesAccess: 'basic',
+          teamMembers: 1,
+          apiAccess: false,
+          advancedAnalytics: false,
+          legalDocuments: false,
+          financialTools: false,
+          businessCanvas: false,
+          marketingTools: false,
+          pitchDeckBuilder: false,
+        };
       case 'pro':
         return {
-          maxIdeasPerMonth: -1, // unlimited
           templatesAccess: 'premium',
-          supportLevel: 'priority',
-          teamMembers: 3,
+          teamMembers: 5,
           apiAccess: false,
-          customBranding: false,
           advancedAnalytics: true,
-          customIntegrations: false,
-          dedicatedManager: false,
+          legalDocuments: true,
+          financialTools: true,
+          businessCanvas: true,
+          marketingTools: true,
+          pitchDeckBuilder: true,
         };
       case 'enterprise':
         return {
-          maxIdeasPerMonth: -1, // unlimited
           templatesAccess: 'all',
-          supportLevel: 'dedicated',
-          teamMembers: -1, // unlimited
+          teamMembers: 10,
           apiAccess: true,
-          customBranding: true,
           advancedAnalytics: true,
-          customIntegrations: true,
-          dedicatedManager: true,
+          legalDocuments: true,
+          financialTools: true,
+          businessCanvas: true,
+          marketingTools: true,
+          pitchDeckBuilder: true,
         };
-      default: // starter
+      default:
         return {
-          maxIdeasPerMonth: 2,
           templatesAccess: 'basic',
-          supportLevel: 'community',
           teamMembers: 1,
           apiAccess: false,
-          customBranding: false,
           advancedAnalytics: false,
-          customIntegrations: false,
-          dedicatedManager: false,
+          legalDocuments: false,
+          financialTools: false,
+          businessCanvas: false,
+          marketingTools: false,
+          pitchDeckBuilder: false,
         };
     }
   };
@@ -84,13 +83,22 @@ export const useSubscription = () => {
     return Boolean(features[feature]);
   };
 
-  const canGenerateIdeas = (currentCount: number): boolean => {
-    return features.maxIdeasPerMonth === -1 || currentCount < features.maxIdeasPerMonth;
+  const getRemainingIdeas = (generationCount: number): number => {
+    switch (plan) {
+      case 'starter':
+        return Math.max(0, 5 - generationCount); // 5 ideas per month for starter plan
+      case 'pro':
+        return Math.max(0, 20 - generationCount); // 20 ideas per month for pro plan
+      case 'enterprise':
+        return -1; // Unlimited ideas for enterprise plan
+      default:
+        return 0;
+    }
   };
 
-  const getRemainingIdeas = (currentCount: number): number => {
-    if (features.maxIdeasPerMonth === -1) return -1; // unlimited
-    return Math.max(0, features.maxIdeasPerMonth - currentCount);
+  const canGenerateIdeas = (generationCount: number): boolean => {
+    const remaining = getRemainingIdeas(generationCount);
+    return remaining === -1 || remaining > 0;
   };
 
   const upgradePlan = async (newPlan: SubscriptionPlan) => {
@@ -98,14 +106,14 @@ export const useSubscription = () => {
     
     try {
       await user.update({
-        publicMetadata: {
-          ...user.publicMetadata,
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
           subscriptionPlan: newPlan,
           planUpgradedAt: new Date().toISOString(),
         },
       });
       setPlan(newPlan);
-      setFeatures(getPlanFeatures(newPlan));
+      setFeatures(getFeaturesForPlan(newPlan));
     } catch (error) {
       console.error('Failed to upgrade plan:', error);
       throw error;
@@ -116,9 +124,10 @@ export const useSubscription = () => {
     plan,
     features,
     hasFeature,
-    canGenerateIdeas,
-    getRemainingIdeas,
     upgradePlan,
     isLoaded,
+    subscription: { plan, features },
+    getRemainingIdeas,
+    canGenerateIdeas,
   };
 };
