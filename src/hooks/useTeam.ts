@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TeamService } from '../services/teamService';
-import { Team, TeamMember, TeamRole, TeamInvite, TeamActivity } from '../types/team';
+import { Team, TeamRole, TeamInvite, TeamActivity } from '../types/team';
 import { useUser } from '../contexts/UserContext';
 
 const teamService = new TeamService();

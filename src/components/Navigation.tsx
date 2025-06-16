@@ -1,56 +1,53 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '../contexts/AuthContext';
 import { usePlanFeatures } from '@/hooks/usePlanFeatures';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Users, BarChart } from 'lucide-react';
+import { Users, BarChart } from 'lucide-react';
 
 export function Navigation() {
-  const { user } = useUser();
+  const { isAuthenticated } = useAuth();
   const { hasFeature } = usePlanFeatures();
   const location = useLocation();
 
-  const supportLinks = [
-    {
-      label: 'Support Tickets',
-      href: '/support',
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      label: 'Community',
-      href: '/community',
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      label: 'Analytics',
-      href: '/support/analytics',
-      icon: <BarChart className="h-4 w-4" />,
-      show: hasFeature('analytics'),
-    },
-  ];
-
   return (
-    <nav className="flex flex-col h-full">
-      <div className="space-y-1">
-        <h3 className="px-4 text-sm font-semibold text-muted-foreground">Support</h3>
-        {supportLinks.map((link) => {
-          if (link.show === false) return null;
-          return (
+    <nav className="flex items-center space-x-4">
+      {isAuthenticated && (
+        <>
+          <Link
+            to="/dashboard"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary",
+              location.pathname === "/dashboard" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            Dashboard
+          </Link>
+          {hasFeature('team') && (
             <Link
-              key={link.href}
-              to={link.href}
+              to="/team"
               className={cn(
-                'flex items-center px-4 py-2 text-sm font-medium rounded-md',
-                location.pathname === link.href
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                "text-sm font-medium transition-colors hover:text-primary",
+                location.pathname === "/team" ? "text-primary" : "text-muted-foreground"
               )}
             >
-              {link.icon}
-              <span className="ml-3">{link.label}</span>
+              <Users className="w-4 h-4 mr-2" />
+              Team
             </Link>
-          );
-        })}
-      </div>
+          )}
+          {hasFeature('analytics') && (
+            <Link
+              to="/analytics"
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-primary",
+                location.pathname === "/analytics" ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <BarChart className="w-4 h-4 mr-2" />
+              Analytics
+            </Link>
+          )}
+        </>
+      )}
     </nav>
   );
 } 

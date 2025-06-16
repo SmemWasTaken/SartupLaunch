@@ -1,8 +1,5 @@
 import { StartupIdea, Template, IdeaGeneratorParams } from '../types';
 
-const categories = ['SaaS', 'E-commerce', 'Mobile App', 'AI/ML', 'Education', 'Health', 'Finance', 'Social'];
-const difficulties = ['Easy', 'Medium', 'Hard'] as const;
-
 export const generateMockIdeas = (params: IdeaGeneratorParams): Omit<StartupIdea, 'id' | 'userId' | 'createdAt' | 'isFavorite'>[] => {
   const ideas = [
     {

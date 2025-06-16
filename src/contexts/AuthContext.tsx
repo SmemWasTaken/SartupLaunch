@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthState } from '../types';
 import { supabase, isDemoMode } from '../lib/supabase';
+import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 interface AuthContextType extends AuthState {
   signUp: (email: string, password: string, name: string) => Promise<void>;
@@ -35,23 +36,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Only set up Supabase auth listener if not in demo mode
     if (!isDemoMode) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (session) => {
-          if (session?.user) {
-            await loadUserProfile(session.user.id);
-          } else {
-            setAuthState(prev => ({
-              ...prev,
-              user: null,
-              isAuthenticated: false,
-              isLoading: false,
-            }));
-          }
+        async (event: AuthChangeEvent, session: Session | null) => {
+          handleAuthChange(event, session);
         }
       );
 
       return () => subscription.unsubscribe();
     }
   }, []);
+
+  const handleAuthChange = async (event: AuthChangeEvent, session: Session | null) => {
+    if (event === 'SIGNED_IN' && session) {
+      const user = session.user;
+      if (user) {
+        await loadUserProfile(user.id);
+      }
+    } else {
+      setAuthState(prev => ({
+        ...prev,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      }));
+    }
+  };
 
   const checkSession = async () => {
     try {

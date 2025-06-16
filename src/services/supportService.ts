@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import {
   CommunityPost,
-  PostComment,
   PostReaction,
   SupportTicket,
   SupportAgent,
@@ -114,10 +113,6 @@ export class SupportService {
   getTickets(): Record<string, SupportTicket> {
     const tickets = localStorage.getItem(TICKETS_STORAGE_KEY);
     return tickets ? JSON.parse(tickets) : {};
-  }
-
-  private saveTickets(tickets: Record<string, SupportTicket>): void {
-    localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(tickets));
   }
 
   async createTicket(input: CreateSupportTicketInput, userId: string): Promise<SupportTicket> {

@@ -1,5 +1,4 @@
 import { Team, TeamMember, TeamRole, TeamInvite, TeamActivity, TeamActivityType } from '../types/team';
-import { User } from '../types/plan';
 
 const TEAMS_STORAGE_KEY = 'teams';
 const TEAM_INVITES_STORAGE_KEY = 'team_invites';

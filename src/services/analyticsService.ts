@@ -175,7 +175,7 @@ export class AnalyticsService {
     this.saveAnalytics();
   }
 
-  public trackIdeaFavorite(userId: string, idea: GeneratedIdea, isFavorite: boolean) {
+  public trackIdeaFavorite(userId: string, isFavorite: boolean) {
     this.initializeUserAnalytics(userId);
     const analytics = this.analyticsData.get(userId)!;
     

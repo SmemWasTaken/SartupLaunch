@@ -1,4 +1,4 @@
-export type PostCategory = 'general' | 'ideas' | 'feedback' | 'announcements' | 'help';
+export type PostCategory = 'general' | 'technical' | 'business' | 'marketing';
 
 export type PostStatus = 'published' | 'draft' | 'archived';
 
@@ -6,19 +6,27 @@ export type PostReaction = 'like' | 'helpful' | 'insightful';
 
 export interface CommunityPost {
   id: string;
+  userId: string;
   title: string;
   content: string;
-  authorId: string;
-  authorName: string;
   category: PostCategory;
-  status: PostStatus;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
-  reactions: Record<PostReaction, number>;
-  userReactions: Record<string, PostReaction[]>;
-  comments: PostComment[];
-  tags: string[];
-  isPinned: boolean;
+  reactions: {
+    like: number;
+    helpful: number;
+    insightful: number;
+  };
+  userReactions: {
+    [userId: string]: PostReaction[];
+  };
+  comments: Array<{
+    id: string;
+    userId: string;
+    content: string;
+    createdAt: string;
+  }>;
   viewCount: number;
 }
 

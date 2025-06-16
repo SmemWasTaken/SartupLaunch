@@ -9,7 +9,6 @@ import {
   Copy, 
   Check,
   ExternalLink,
-  ArrowRight,
   Terminal,
   Database,
   Settings

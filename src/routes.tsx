@@ -1,4 +1,3 @@
-import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import HowItWorksPage from './pages/HowItWorksPage';
@@ -11,8 +10,8 @@ import FavoritesPage from './pages/FavoritesPage';
 import TeamPage from './pages/TeamPage';
 import TeamSettingsPage from './pages/TeamSettingsPage';
 import TeamActivityPage from './pages/TeamActivityPage';
-import CommunityPage from './pages/CommunityPage';
-import SupportPage from './pages/SupportPage';
+import { CommunityPage } from './pages/CommunityPage';
+import { SupportPage } from './pages/SupportPage';
 import { SupportAnalyticsPage } from '@/pages/SupportAnalyticsPage';
 import { CreateTicketPage } from './pages/support/CreateTicketPage';
 

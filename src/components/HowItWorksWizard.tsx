@@ -123,7 +123,7 @@ const HowItWorksWizard: React.FC = () => {
   const handleToggleFavorite = (idea: GeneratedIdea) => {
     if (!user) return;
     toggleFavorite(idea);
-    analyticsService.trackIdeaFavorite(user.id, idea, !isFavorite(idea.id));
+    analyticsService.trackIdeaFavorite(user.id, !isFavorite(idea.id));
   };
 
   const handleNext = async () => {

@@ -10,7 +10,7 @@ const TeamPage: React.FC = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
-  const { team, userTeams, isLoading, error, createTeam, updateTeamSettings, inviteMember, removeMember, loadActivities } = useTeam(teamId);
+  const { team, userTeams, isLoading, error, createTeam, inviteMember, removeMember } = useTeam(teamId);
   const { hasFeature } = usePlanFeatures();
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');

@@ -98,10 +98,10 @@ export const useSubscription = () => {
     
     try {
       await user.update({
-        publicMetadata: {
+        unsafeMetadata: {
           subscriptionPlan: newPlan,
           planUpgradedAt: new Date().toISOString(),
-        },
+        }
       });
       setPlan(newPlan);
       setFeatures(getPlanFeatures(newPlan));

@@ -27,8 +27,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
+  signInWithEmail: (email: string) => Promise<void>;
+  signUpWithEmail: (email: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: any) => Promise<void>;
   error: string | null;
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signInWithEmail = async (email: string, password: string) => {
+  const signInWithEmail = async (email: string) => {
     try {
       setError(null);
       setLoading(true);
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+  const signUpWithEmail = async (email: string, displayName: string) => {
     try {
       setError(null);
       setLoading(true);
